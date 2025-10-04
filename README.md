@@ -9,6 +9,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 - 📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
+- 📊 **Stage 5 explainability** with templated submission reports and a multi-metric leaderboard.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
 - ✅ **Unit tests** covering the scoring logic and heuristic analyzers.
 
@@ -38,7 +39,7 @@ tests/                # Pytest-based unit tests
    ```powershell
    pip install -r requirements.txt
    ```
-   This pulls in pytest for the suite plus pylint and radon for the Stage 4 code analyzer.
+   This pulls in pytest for the suite, pylint + radon for the Stage 4 code analyzer, and pandas + Jinja2 for Stage 5 reporting.
 2. Run the sample pipeline:
    ```powershell
    python -m ai_judge.main
@@ -51,6 +52,12 @@ tests/                # Pytest-based unit tests
    ```powershell
    python -m pylint ai_judge/modules/code_analyzer.py --disable=missing-module-docstring,missing-function-docstring,too-many-locals,too-few-public-methods
    ```
+
+### Leaderboard & Explainable Reports
+
+- Individual submission reports now render via Jinja2 to `reports/<submission>_report.html`, featuring criteria tables, transcript excerpts, flagged claims, and code quality evidence.
+- Running the pipeline also writes `reports/leaderboard.csv`, a pandas-generated table aggregating total scores with key video/text/code metrics for easy ranking.
+- The report templates live under `ai_judge/templates/` for easy customization (branding, extra metrics, etc.).
 
 ### Continuous Integration
 

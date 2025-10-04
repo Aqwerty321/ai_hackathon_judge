@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
@@ -73,9 +74,9 @@ def run_pipeline(
         payload: Dict[str, Any] = {
             "submission": name,
             "submission_dir": str(submission_dir),
-            "video_analysis": video_result.__dict__,
-            "text_analysis": text_result.__dict__,
-            "code_analysis": code_result.__dict__,
+            "video_analysis": asdict(video_result),
+            "text_analysis": asdict(text_result),
+            "code_analysis": asdict(code_result),
             "score": score.as_dict(),
         }
 

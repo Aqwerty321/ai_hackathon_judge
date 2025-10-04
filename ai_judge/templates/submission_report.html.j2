@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Hackathon Report: {{ submission_name }}</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --accent: #2563eb;
+        --muted: #64748b;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 2rem 3rem 3rem;
+        background: #f8fafc;
+        color: #0f172a;
+        line-height: 1.6;
+      }
+
+      header {
+        border-bottom: 3px solid var(--accent);
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        border-left: 4px solid var(--accent);
+        padding-left: 0.75rem;
+        margin-top: 2.5rem;
+      }
+
+      h3 {
+        margin-top: 1.5rem;
+      }
+
+      .score {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        border: 1px solid #cbd5f5;
+        padding: 0.6rem 0.75rem;
+        text-align: left;
+      }
+
+      th {
+        background: #eff6ff;
+      }
+
+      .chips {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin: 0.75rem 0;
+      }
+
+      .chip {
+        background: #e0f2fe;
+        color: #0c4a6e;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+
+      blockquote {
+        background: #f1f5f9;
+        margin: 0.75rem 0;
+        padding: 1rem 1.25rem;
+        border-left: 4px solid var(--accent);
+        font-style: italic;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .badge-success {
+        background: #dcfce7;
+        color: #14532d;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .badge-danger {
+        background: #fee2e2;
+        color: #7f1d1d;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      footer {
+        margin-top: 3rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AI Hackathon Report: {{ submission_name }}</h1>
+      <div class="score">Total score: {{ score_total }}</div>
+      <div class="muted">Submission directory: {{ submission_dir }}</div>
+    </header>
+
+    <section>
+      <h2>Criteria Breakdown</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>Weight</th>
+            <th>Raw</th>
+            <th>Normalized</th>
+            <th>Weighted</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for criterion in criteria %}
+          <tr>
+            <td>{{ criterion.label }}</td>
+            <td>{{ '%0.1f' % (criterion.normalized_weight * 100) }}%</td>
+            <td>{{ '%0.3f' % criterion.raw_value }}</td>
+            <td>{{ '%0.3f' % criterion.normalized_value }}</td>
+            <td>{{ '%0.3f' % criterion.weighted_score }}</td>
+            <td>{{ criterion.description or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Video Insights</h2>
+      <div class="grid grid-2">
+        <div>
+          <h3>Key Metrics</h3>
+          <p><strong>Clarity</strong>: {{ video.clarity_score | default(0) | round(3) }}</p>
+          <p><strong>Estimated duration</strong>: {{ video.estimated_duration_seconds | default(0) | round(1) }}s</p>
+          <p><strong>Sentiment</strong>: {{ video.sentiment_label | default('n/a') }} ({{ video.sentiment_score | default(0) | round(3) }})</p>
+          <p class="muted">Transcript source: {{ video.transcription_source | default('unknown') }}</p>
+        </div>
+        <div>
+          <h3>Transcript excerpt</h3>
+          <blockquote>{{ video_excerpt }}</blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Text Insights</h2>
+      <div class="grid grid-2">
+        <div>
+          <h3>Summary</h3>
+          <p>{{ text.summary or 'No summary available.' }}</p>
+          <div class="chips">
+            <span class="chip">Originality: {{ text.originality_score | default(0) | round(3) }}</span>
+            <span class="chip">Feasibility: {{ text.feasibility_score | default(0) | round(3) }}</span>
+            <span class="chip">AI likelihood: {{ text.ai_generated_likelihood | default(0) | round(3) }}</span>
+          </div>
+        </div>
+        <div>
+          <h3>Similarity matches</h3>
+          {% if top_matches %}
+          <ul>
+            {% for match in top_matches %}
+            <li>
+              <strong>{{ match.source }}</strong> — similarity {{ '%0.3f' % match.score }}
+              <blockquote>{{ match.snippet }}</blockquote>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="muted">No notable similarities detected.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <h3>Flagged claims</h3>
+      {% if claims %}
+      <ul>
+        {% for claim in claims %}
+        <li>
+          <p><strong>{{ claim.statement }}</strong></p>
+          <p class="muted">Reason: {{ claim.reason }}</p>
+          {% if claim.llm_verdict %}
+          <p><span class="badge-{{ 'success' if claim.llm_verdict == 'plausible' else 'danger' }}">{{ claim.llm_verdict }}</span> — {{ claim.llm_rationale }}</p>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="muted">No risky claims detected.</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2>Code Insights</h2>
+      <div class="chips">
+        <span class="chip">Readability: {{ code.readability_score | default(0) | round(3) }}</span>
+        <span class="chip">Documentation: {{ code.documentation_score | default(0) | round(3) }}</span>
+        <span class="chip">Test coverage est.: {{ code.test_coverage_score_estimate | default(0) | round(3) }}</span>
+      </div>
+
+      <div class="grid grid-2">
+        <div>
+          <h3>Lint summary</h3>
+          {% if lint_messages %}
+          <ul>
+            {% for msg in lint_messages %}
+            <li><strong>{{ msg.symbol }}</strong> ({{ msg.path }}:{{ msg.line }}): {{ msg.message }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="muted">No lint feedback available.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h3>Complexity snapshot</h3>
+          {% if complexity %}
+          <p>Average complexity: {{ complexity.average_complexity | default(0) | round(3) }}</p>
+          <p>Normalized score: {{ complexity.normalized_score | default(0) | round(3) }}</p>
+          {% if complexity.files %}
+          <ul>
+            {% for item in complexity.files[:3] %}
+            <li>{{ item.path }} — max {{ '%0.2f' % item.max_complexity }}, avg {{ '%0.2f' % item.average_complexity }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% else %}
+          <p class="muted">Complexity data unavailable.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <h3>Documentation coverage</h3>
+      {% if documentation %}
+      <p>Docstrings: {{ documentation.docstrings }} / {{ documentation.objects }} (ratio {{ documentation.ratio | default(0) | round(3) }})</p>
+      {% if documentation.errors %}
+      <p class="muted">Errors: {{ documentation.errors | join(', ') }}</p>
+      {% endif %}
+      {% else %}
+      <p class="muted">No documentation metrics recorded.</p>
+      {% endif %}
+
+      <h3>Test results</h3>
+      {% if pytest_details %}
+      <p>Status: {{ pytest_details.status }} (exit {{ pytest_details.returncode }})</p>
+      {% if pytest_details.output %}
+      <details>
+        <summary>Pytest output</summary>
+        <pre>{{ pytest_details.output }}</pre>
+      </details>
+      {% endif %}
+      {% else %}
+      <p class="muted">Pytest not executed.</p>
+      {% endif %}
+    </section>
+
+    <footer>Generated automatically by the AI Hackathon Judge pipeline.</footer>
+  </body>
+</html>
