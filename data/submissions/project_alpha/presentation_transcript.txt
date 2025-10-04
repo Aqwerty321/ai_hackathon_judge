@@ -1,3 +1,0 @@
-Hello judges. In this presentation, we introduce Project Alpha, an intelligent home companion focused on sustainability.
-The system learns from your daily routines, forecasts energy demand, and automates routines to reduce carbon impact.
-We conclude with a roadmap for scaling the platform across communities.
