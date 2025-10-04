@@ -1,0 +1,40 @@
+{
+  "criteria": [
+    {
+      "key": "originality",
+      "label": "Originality",
+      "weight": 0.30,
+      "source": "text.originality_score",
+      "description": "Measured from lexical uniqueness in the project description.",
+      "min_value": 0.0,
+      "max_value": 1.0
+    },
+    {
+      "key": "technical_feasibility",
+      "label": "Technical Feasibility",
+      "weight": 0.25,
+      "source": "text.feasibility_score",
+      "description": "Log-scaled feasibility estimate derived from description word count.",
+      "min_value": 0.0,
+      "max_value": 1.0
+    },
+    {
+      "key": "presentation_quality",
+      "label": "Presentation Quality",
+      "weight": 0.20,
+      "source": "video.clarity_score",
+      "description": "Clarity heuristics computed from the presentation transcript.",
+      "min_value": 0.0,
+      "max_value": 1.0
+    },
+    {
+      "key": "code_quality",
+      "label": "Code Quality & Correctness",
+      "weight": 0.25,
+      "source": "code.quality_index",
+      "description": "Average of readability, documentation, and coverage heuristics.",
+      "min_value": 0.0,
+      "max_value": 1.0
+    }
+  ]
+}

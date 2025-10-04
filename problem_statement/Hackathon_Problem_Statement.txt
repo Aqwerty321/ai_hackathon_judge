@@ -1,0 +1,61 @@
+Hackathon Problem Statement: AI Hackathon Judge  
+Background 
+Hackathons showcase crea vity, innova on, and technical brilliance. Imagine an AI that can judge 
+hackathon projects objec vely, just like a panel of human judges. In this challenge, you will build an 
+AI that takes complete project submissions and evaluates them based on customizable criteria with 
+weightage. 
+Problem Statement 
+ Design a mul-modal AI system that can act as a virtual hackathon judge. Your system must: 
+ Accept the en re project submission as input: 
+ Video presenta on 
+ Wri en project descrip on 
+ Code/demo files 
+ Accept judging criteria with weightage as input. For example: 
+Originality – 30% 
+Technical Feasibility – 25% 
+Impact – 20% 
+Presenta on Quality – 15% 
+Code Quality & Correctness – 10% 
+Analyze submissions on all dimensions, including: 
+Detec ng false claims or misleading statements in text/video. 
+Checking code quality, correctness, and technical feasibility. 
+Evalua ng originality by detec ng similarity with exis ng work or AI-generated content. 
+Assessing presenta on clarity via video/audio/text senment. 
+Generate a final weighted score per submission and rank all submissions on a leaderboard. 
+Produce an explainable judge report, highligh ng why each score was given and which parts 
+of the submission influenced it. 
+Core Requirements 
+ Mul-modal Processing: Text, video, and code. 
+ Customizable Judging: Accept judging criteria and weightage as input. 
+ Weighted Scoring & Leaderboard: Compute final scores based on input weightage and rank 
+submissions. 
+ Robustness & Verifica on: Detect false claims, AI-generated content, and code issues. 
+ Explainability: Provide clear, example-backed jus fica on for scores. 
+Constraints 
+ Maximum processing me per submission: 5 minutes. 
+ Only open-source AI/ML models and libraries may be used. 
+ Core logic for scoring, mul-modal feature extrac on, and verifica on must be implemented 
+by the team, not prebuilt scoring APIs. 
+ Submissions may include noise or inten onally misleading content to test robustness. 
+Evalua on Criteria 
+ Accuracy & Reliability: How closely AI scores match human judgments (AUROC, FPR@95, 
+precision/recall). 
+ Weighted Scoring Correctness: Correct computa on of final score based on input weightage. 
+ Robustness: Detec on of false claims, AI-generated or copied content, and code errors. 
+ Explainability: Judge report clarity, highligh ng evidence from submission. 
+ Innova on & Technical Depth: Crea ve use of mul-modal analysis, embeddings, 
+transformers, and verifica on logic. 
+ Presenta on & Documenta on: Well-documented code, reproducible pipeline, and clear 
+README. 
+Hints for Teams 
+ Use embeddings or mul-modal transformers for feature extrac on. 
+ Code evalua on can include automated tes ng, lin ng, or sta c analysis. 
+ Video analysis may involve transcrip on, scene analysis, and senment detec on. 
+ Compare originality using similarity search against public repositories or datasets. 
+ Implement weighted scoring based on criteria weightage, not simple averaging. 
+Deliverable 
+ AI Judge system (code + model weights). 
+ Submission pipeline accep ng video + text + code + judging criteria + weightage. 
+ Sample judge reports for at least one mock submission. 
+ Leaderboard output showing ranked submissions. 
+ Documenta on & README explaining architecture, scoring logic, and reproducibility.

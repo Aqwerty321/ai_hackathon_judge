@@ -1,0 +1,2 @@
+Project Alpha is an AI-powered sustainability assistant that helps households reduce energy consumption through adaptive recommendations and smart automation.
+It integrates sensor data, predicts high-usage patterns, and suggests personalized actions to stay within carbon budgets.
