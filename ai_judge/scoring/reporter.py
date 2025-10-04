@@ -196,17 +196,16 @@ class ReportGenerator:
                 continue
         if not labels:
             return
-
-        fig, ax = plt.subplots(figsize=(6, 3.5))
+        fig, ax = plt.subplots(figsize=(6.5, 4))
         index = range(len(labels))
         ax.bar(index, weighted, label="Weighted", color="#4CAF50", alpha=0.8)
         ax.plot(index, raw, label="Normalized", color="#2196F3", marker="o", linewidth=2)
         ax.set_xticks(list(index))
         ax.set_xticklabels(labels, rotation=30, ha="right")
         ax.set_ylabel("Score")
-        ax.set_title("Criteria Scores")
+        ax.set_title("Criteria Scores", pad=12)
         ax.legend()
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
         output_path = target_dir / "scores.png"
         fig.savefig(output_path, dpi=150)
         plt.close(fig)
@@ -227,12 +226,12 @@ class ReportGenerator:
             values.append(float(video.get("sentiment_score", 0.0)))
         except (TypeError, ValueError):
             return
-        fig, ax = plt.subplots(figsize=(4, 3))
+        fig, ax = plt.subplots(figsize=(4.5, 3.5))
         bars = ax.bar(labels, values, color=["#FF9800", "#03A9F4"])
         ax.set_ylim(0, 1)
-        ax.set_title("Video Metrics")
+        ax.set_title("Video Metrics", pad=12)
         ax.bar_label(bars, fmt="%.2f")
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
         output_path = target_dir / "video_metrics.png"
         fig.savefig(output_path, dpi=150)
         plt.close(fig)
@@ -261,12 +260,12 @@ class ReportGenerator:
                 continue
         if not labels:
             return
-        fig, ax = plt.subplots(figsize=(4, 3))
+        fig, ax = plt.subplots(figsize=(4.5, 3.5))
         bars = ax.bar(labels, values, color=["#8BC34A", "#673AB7", "#E91E63"])
         ax.set_ylim(0, 1)
-        ax.set_title("Text Metrics")
+        ax.set_title("Text Metrics", pad=12)
         ax.bar_label(bars, fmt="%.2f")
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
         output_path = target_dir / "text_metrics.png"
         fig.savefig(output_path, dpi=150)
         plt.close(fig)
@@ -295,12 +294,12 @@ class ReportGenerator:
                 continue
         if not labels:
             return
-        fig, ax = plt.subplots(figsize=(4, 3))
+        fig, ax = plt.subplots(figsize=(4.5, 3.5))
         bars = ax.bar(labels, values, color=["#009688", "#FF5722", "#607D8B"])
         ax.set_ylim(0, 1)
-        ax.set_title("Code Metrics")
+        ax.set_title("Code Metrics", pad=12)
         ax.bar_label(bars, fmt="%.2f")
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0, 1, 0.95])
         output_path = target_dir / "code_metrics.png"
         fig.savefig(output_path, dpi=150)
         plt.close(fig)
