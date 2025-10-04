@@ -8,6 +8,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 - 🎥 **Video pipeline** with optional Whisper transcription + sentiment analysis and caching.
 - 📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
+- 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
 - ✅ **Unit tests** covering the scoring logic and heuristic analyzers.
 
@@ -37,14 +38,25 @@ tests/                # Pytest-based unit tests
    ```powershell
    pip install -r requirements.txt
    ```
+   This pulls in pytest for the suite plus pylint and radon for the Stage 4 code analyzer.
 2. Run the sample pipeline:
    ```powershell
    python -m ai_judge.main
    ```
 3. Execute the test suite:
    ```powershell
-   pytest
+   python -m pytest
    ```
+4. (Optional) Run the code analyzer lint gate to mirror CI:
+   ```powershell
+   python -m pylint ai_judge/modules/code_analyzer.py --disable=missing-module-docstring,missing-function-docstring,too-many-locals,too-few-public-methods
+   ```
+
+### Continuous Integration
+
+- GitHub Actions workflow in `.github/workflows/ci.yml` runs on pushes and pull requests against `main`.
+- Steps: install dependencies, run the targeted pylint check above, and execute the pytest suite.
+- Keep local quality gates green (`python -m pytest` and the lint command) to ensure CI stays fast and reliable.
 
 ### Customising Judging Criteria
 
