@@ -20,6 +20,9 @@ class Config:
     criteria_path: Path = Path("config") / "judging_criteria.json"
     video_transcription_model: str = "base"
     video_sentiment_model: str = "distilbert-base-uncased-finetuned-sst-2-english"
+    text_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    text_similarity_top_k: int = 5
+    text_ai_detector_model: str = "roberta-base-openai-detector"
 
     def submission_dir(self, name: str | None = None) -> Path:
         target = Path(self.data_dir) / "submissions" / (name or self.default_submission_name)
@@ -38,3 +41,7 @@ class Config:
     @property
     def transcript_cache_dir(self) -> Path:
         return (self.base_dir / self.intermediate_dir / "transcripts").resolve()
+
+    @property
+    def text_cache_dir(self) -> Path:
+        return (self.base_dir / self.intermediate_dir / "text").resolve()

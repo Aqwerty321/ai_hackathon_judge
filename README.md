@@ -6,6 +6,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 
 - 🔍 **Modular analyzers** for video, text, and code signals.
 - 🎥 **Video pipeline** with optional Whisper transcription + sentiment analysis and caching.
+- 📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
 - ✅ **Unit tests** covering the scoring logic and heuristic analyzers.
@@ -60,6 +61,14 @@ tests/                # Pytest-based unit tests
    pip install openai-whisper moviepy transformers
    ```
 - Without these packages, the analyzer falls back to cached transcripts and lightweight heuristics.
+
+### Text Analysis Extras
+
+- Install embedding + detection helpers for deeper originality checks:
+   ```powershell
+   pip install sentence-transformers
+   ```
+- These dependencies are optional; without them, the analyzer still performs lexical similarity, claim heuristics, and AI-generated scoring based on rule-based signals.
 
 ## Extending the Pipeline
 

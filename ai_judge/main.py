@@ -46,7 +46,13 @@ def run_pipeline(
         transcription_model=config.video_transcription_model,
         sentiment_model=config.video_sentiment_model,
     )
-    text_analyzer = TextAnalyzer(config.similarity_corpus_dir)
+    text_analyzer = TextAnalyzer(
+        similarity_corpus_dir=config.similarity_corpus_dir,
+        intermediate_dir=config.text_cache_dir,
+        embedding_model=config.text_embedding_model,
+        top_k=config.text_similarity_top_k,
+        ai_detector_model=config.text_ai_detector_model,
+    )
     code_analyzer = CodeAnalyzer()
     scorer = Scorer(judging_criteria)
 
