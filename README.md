@@ -5,6 +5,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 ## Features
 
 - 🔍 **Modular analyzers** for video, text, and code signals.
+- 🎥 **Video pipeline** with optional Whisper transcription + sentiment analysis and caching.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
 - ✅ **Unit tests** covering the scoring logic and heuristic analyzers.
@@ -50,6 +51,15 @@ tests/                # Pytest-based unit tests
 - Each `source` follows a dotted path into the analyzer outputs (e.g., `video.clarity_score`).
 - Weights are auto-normalised at runtime, so you can provide any proportional values.
 - Additional submission-level reports and a global `leaderboard.csv` are written to `reports/` after each run.
+
+### Video Analysis Dependencies
+
+- The video analyzer automatically uses Whisper + `transformers` sentiment models when available.
+- Install optional extras to enable them fully:
+   ```powershell
+   pip install openai-whisper moviepy transformers
+   ```
+- Without these packages, the analyzer falls back to cached transcripts and lightweight heuristics.
 
 ## Extending the Pipeline
 

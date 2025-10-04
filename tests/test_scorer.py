@@ -27,7 +27,12 @@ def test_score_combination_uses_weights() -> None:
     scorer = Scorer(criteria)
 
     video_result = VideoAnalysisResult(
-        transcript="Test transcript.", clarity_score=0.8, estimated_duration_seconds=90.0
+        transcript="Test transcript.",
+        clarity_score=0.8,
+        estimated_duration_seconds=90.0,
+        sentiment_label="positive",
+        sentiment_score=0.75,
+        transcription_source="unit_test",
     )
     text_result = TextAnalysisResult(
         originality_score=0.7, feasibility_score=0.9, summary="Summary"

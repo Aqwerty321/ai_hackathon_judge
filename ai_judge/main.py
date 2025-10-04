@@ -41,7 +41,11 @@ def run_pipeline(
     names = _resolve_submission_names(config, submission_name, submission_names)
     judging_criteria = _resolve_criteria(config, criteria, criteria_path)
 
-    video_analyzer = VideoAnalyzer()
+    video_analyzer = VideoAnalyzer(
+        intermediate_dir=config.transcript_cache_dir,
+        transcription_model=config.video_transcription_model,
+        sentiment_model=config.video_sentiment_model,
+    )
     text_analyzer = TextAnalyzer(config.similarity_corpus_dir)
     code_analyzer = CodeAnalyzer()
     scorer = Scorer(judging_criteria)
