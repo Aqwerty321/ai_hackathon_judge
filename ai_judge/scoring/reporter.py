@@ -9,6 +9,15 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 from ..utils.file_helpers import ensure_directory
 
+try:  # pragma: no cover - optional dependency used for visualizations
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+except ImportError:  # pragma: no cover - gracefully skip charts without matplotlib
+    plt = None  # type: ignore
+    matplotlib = None  # type: ignore
+
 
 @dataclass(slots=True)
 class ReportGenerator:
@@ -57,6 +66,8 @@ class ReportGenerator:
         top_matches = list(text.get("similarity_matches") or [])[:3]
         claims = list(text.get("suspect_claims") or [])
 
+        chart_paths = self._build_charts(submission_name, score_section, video, text, code)
+
         context = {
             "submission_name": submission_name,
             "submission_dir": payload.get("submission_dir", "Unknown"),
@@ -72,6 +83,7 @@ class ReportGenerator:
             "complexity": complexity_section,
             "documentation": documentation_section,
             "pytest_details": pytest_section,
+            "charts": chart_paths,
         }
 
         template = self._env.get_template("submission_report.html.j2")
@@ -134,3 +146,165 @@ class ReportGenerator:
         if len(snippet) <= max_chars:
             return snippet
         return snippet[: max_chars - 1].rsplit(" ", 1)[0] + "…"
+
+    def _chart_dir(self, submission_name: str) -> Path:
+        charts_dir = self.output_dir / "charts"
+        ensure_directory(charts_dir)
+        submission_dir = charts_dir / submission_name
+        ensure_directory(submission_dir)
+        return submission_dir
+
+    def _build_charts(
+        self,
+        submission_name: str,
+        score_section: Mapping[str, Any],
+        video: Mapping[str, Any],
+        text: Mapping[str, Any],
+        code: Mapping[str, Any],
+    ) -> Dict[str, str]:
+        if plt is None:
+            return {}
+
+        charts: Dict[str, str] = {}
+        target_dir = self._chart_dir(submission_name)
+
+        self._plot_scores(target_dir, score_section, charts)
+        self._plot_video_metrics(target_dir, video, charts)
+        self._plot_text_metrics(target_dir, text, charts)
+        self._plot_code_metrics(target_dir, code, charts)
+
+        return charts
+
+    def _plot_scores(
+        self,
+        target_dir: Path,
+        score_section: Mapping[str, Any],
+        charts: Dict[str, str],
+    ) -> None:
+        criteria = score_section.get("criteria", {}) if isinstance(score_section, Mapping) else {}
+        if not criteria:
+            return
+        labels = []
+        weighted = []
+        raw = []
+        for key, entry in criteria.items():
+            try:
+                labels.append(str(entry.get("label") or key))
+                weighted.append(float(entry.get("weighted_score", 0.0)))
+                raw.append(float(entry.get("normalized_value", 0.0)))
+            except (TypeError, ValueError):
+                continue
+        if not labels:
+            return
+
+        fig, ax = plt.subplots(figsize=(6, 3.5))
+        index = range(len(labels))
+        ax.bar(index, weighted, label="Weighted", color="#4CAF50", alpha=0.8)
+        ax.plot(index, raw, label="Normalized", color="#2196F3", marker="o", linewidth=2)
+        ax.set_xticks(list(index))
+        ax.set_xticklabels(labels, rotation=30, ha="right")
+        ax.set_ylabel("Score")
+        ax.set_title("Criteria Scores")
+        ax.legend()
+        fig.tight_layout()
+        output_path = target_dir / "scores.png"
+        fig.savefig(output_path, dpi=150)
+        plt.close(fig)
+        charts["scores"] = self._relative_chart_path(output_path)
+
+    def _plot_video_metrics(
+        self,
+        target_dir: Path,
+        video: Mapping[str, Any],
+        charts: Dict[str, str],
+    ) -> None:
+        if not video:
+            return
+        labels = ["Clarity", "Sentiment"]
+        values = []
+        try:
+            values.append(float(video.get("clarity_score", 0.0)))
+            values.append(float(video.get("sentiment_score", 0.0)))
+        except (TypeError, ValueError):
+            return
+        fig, ax = plt.subplots(figsize=(4, 3))
+        bars = ax.bar(labels, values, color=["#FF9800", "#03A9F4"])
+        ax.set_ylim(0, 1)
+        ax.set_title("Video Metrics")
+        ax.bar_label(bars, fmt="%.2f")
+        fig.tight_layout()
+        output_path = target_dir / "video_metrics.png"
+        fig.savefig(output_path, dpi=150)
+        plt.close(fig)
+        charts["video_metrics"] = self._relative_chart_path(output_path)
+
+    def _plot_text_metrics(
+        self,
+        target_dir: Path,
+        text: Mapping[str, Any],
+        charts: Dict[str, str],
+    ) -> None:
+        if not text:
+            return
+        metrics = [
+            ("Originality", text.get("originality_score", 0.0)),
+            ("Feasibility", text.get("feasibility_score", 0.0)),
+            ("AI Likelihood", text.get("ai_generated_likelihood", 0.0)),
+        ]
+        labels = []
+        values = []
+        for label, value in metrics:
+            try:
+                labels.append(label)
+                values.append(float(value))
+            except (TypeError, ValueError):
+                continue
+        if not labels:
+            return
+        fig, ax = plt.subplots(figsize=(4, 3))
+        bars = ax.bar(labels, values, color=["#8BC34A", "#673AB7", "#E91E63"])
+        ax.set_ylim(0, 1)
+        ax.set_title("Text Metrics")
+        ax.bar_label(bars, fmt="%.2f")
+        fig.tight_layout()
+        output_path = target_dir / "text_metrics.png"
+        fig.savefig(output_path, dpi=150)
+        plt.close(fig)
+        charts["text_metrics"] = self._relative_chart_path(output_path)
+
+    def _plot_code_metrics(
+        self,
+        target_dir: Path,
+        code: Mapping[str, Any],
+        charts: Dict[str, str],
+    ) -> None:
+        if not code:
+            return
+        metrics = [
+            ("Readability", code.get("readability_score", 0.0)),
+            ("Documentation", code.get("documentation_score", 0.0)),
+            ("Tests", code.get("test_coverage_score_estimate", 0.0)),
+        ]
+        labels = []
+        values = []
+        for label, value in metrics:
+            try:
+                labels.append(label)
+                values.append(float(value))
+            except (TypeError, ValueError):
+                continue
+        if not labels:
+            return
+        fig, ax = plt.subplots(figsize=(4, 3))
+        bars = ax.bar(labels, values, color=["#009688", "#FF5722", "#607D8B"])
+        ax.set_ylim(0, 1)
+        ax.set_title("Code Metrics")
+        ax.bar_label(bars, fmt="%.2f")
+        fig.tight_layout()
+        output_path = target_dir / "code_metrics.png"
+        fig.savefig(output_path, dpi=150)
+        plt.close(fig)
+        charts["code_metrics"] = self._relative_chart_path(output_path)
+
+    def _relative_chart_path(self, chart_path: Path) -> str:
+        return str(chart_path.relative_to(self.output_dir))

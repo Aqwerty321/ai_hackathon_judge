@@ -91,6 +91,29 @@
         gap: 1.25rem;
       }
 
+      .chart {
+        margin: 1rem 0;
+        text-align: center;
+      }
+
+      .chart img {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      }
+
+      .chart-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: flex-start;
+        align-items: stretch;
+      }
+
+      .chart-row .chart {
+        flex: 1 1 280px;
+      }
+
       .grid-2 {
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       }
@@ -162,6 +185,11 @@
 
     <section>
       <h2>Video Insights</h2>
+      {% if charts.video_metrics %}
+      <div class="chart">
+        <img src="{{ charts.video_metrics }}" alt="Video metrics chart" />
+      </div>
+      {% endif %}
       <div class="grid grid-2">
         <div>
           <h3>Key Metrics</h3>
@@ -179,6 +207,18 @@
 
     <section>
       <h2>Text Insights</h2>
+      <div class="chart-row">
+        {% if charts.text_metrics %}
+        <div class="chart">
+          <img src="{{ charts.text_metrics }}" alt="Text metrics chart" />
+        </div>
+        {% endif %}
+        {% if charts.scores %}
+        <div class="chart">
+          <img src="{{ charts.scores }}" alt="Criteria scores chart" />
+        </div>
+        {% endif %}
+      </div>
       <div class="grid grid-2">
         <div>
           <h3>Summary</h3>
@@ -242,6 +282,11 @@
 
     <section>
       <h2>Code Insights</h2>
+      {% if charts.code_metrics %}
+      <div class="chart">
+        <img src="{{ charts.code_metrics }}" alt="Code metrics chart" />
+      </div>
+      {% endif %}
       <div class="chips">
         <span class="chip">Readability: {{ code.readability_score | default(0) | round(3) }}</span>
         <span class="chip">Documentation: {{ code.documentation_score | default(0) | round(3) }}</span>
