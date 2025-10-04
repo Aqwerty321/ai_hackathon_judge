@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+import logging
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Iterable, Tuple
 
@@ -24,6 +25,14 @@ try:  # pragma: no cover - optional heavy dependencies
 except ImportError:  # pragma: no cover - optional heavy dependencies
     pipeline = None  # type: ignore
 
+try:  # pragma: no cover - optional heavy dependencies
+    from ctransformers import AutoModelForCausalLM  # type: ignore
+except ImportError:  # pragma: no cover - optional heavy dependencies
+    AutoModelForCausalLM = None  # type: ignore
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class SimilarityMatch:
@@ -40,6 +49,8 @@ class ClaimFlag:
 
     statement: str
     reason: str
+    llm_verdict: str | None = None
+    llm_rationale: str | None = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +75,9 @@ class TextAnalyzer:
         embedding_model: str | None = None,
         top_k: int = 5,
         ai_detector_model: str | None = None,
+        llm_model_path: Path | None = None,
+        llm_model_type: str = "auto",
+        llm_max_tokens: int = 256,
     ) -> None:
         self.similarity_corpus_dir = Path(similarity_corpus_dir) if similarity_corpus_dir else None
         self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
@@ -72,10 +86,14 @@ class TextAnalyzer:
         self._embedding_model_name = embedding_model
         self._ai_detector_model = ai_detector_model
         self._top_k = top_k
+        self._llm_model_path = Path(llm_model_path) if llm_model_path else None
+        self._llm_model_type = llm_model_type
+        self._llm_max_tokens = llm_max_tokens
 
         self._embedder = None
         self._ai_detector = None
         self._corpus_cache: list[tuple[str, str]] | None = None
+        self._llm = None
 
     def analyze(self, submission_dir: Path) -> TextAnalysisResult:
         description = read_text(submission_dir / "description.txt")
@@ -85,6 +103,7 @@ class TextAnalyzer:
         feasibility = self._estimate_feasibility(word_count)
         summary = self._summarize(description)
         claims = self._flag_claims(description)
+        claims = self._enrich_claims_with_llm(description, claims)
         ai_likelihood = self._estimate_ai_generated(description)
 
         return TextAnalysisResult(
@@ -225,6 +244,75 @@ class TextAnalyzer:
                     reason_parts.append("Contains quantifiable claim requiring verification")
                 flags.append(ClaimFlag(statement=sentence, reason="; ".join(reason_parts)))
         return flags[: self._top_k]
+
+    # ------------------------------------------------------------------
+    # Local LLM enrichment
+    def _enrich_claims_with_llm(self, description: str, claims: list[ClaimFlag]) -> list[ClaimFlag]:
+        if not claims or self._llm_model_path is None:
+            return claims
+        if not self._llm_model_path.exists():
+            LOGGER.warning("LLM model path '%s' not found; skipping claim verification.", self._llm_model_path)
+            return claims
+        if AutoModelForCausalLM is None:
+            LOGGER.warning("ctransformers is not installed; skipping local LLM verification.")
+            return claims
+
+        if self._llm is None:
+            try:  # pragma: no cover - heavy dependency
+                self._llm = AutoModelForCausalLM.from_pretrained(
+                    str(self._llm_model_path),
+                    model_type=self._llm_model_type,
+                )
+            except Exception as exc:  # pragma: no cover
+                LOGGER.warning("Failed to load local LLM from '%s': %s", self._llm_model_path, exc)
+                return claims
+
+        enriched: list[ClaimFlag] = []
+        for idx, claim in enumerate(claims):
+            if idx >= self._top_k:
+                enriched.append(claim)
+                continue
+            prompt = self._build_claim_prompt(description, claim.statement)
+            try:  # pragma: no cover - heavy dependency
+                response = self._llm(
+                    prompt,
+                    max_new_tokens=self._llm_max_tokens,
+                    temperature=0.1,
+                )
+            except Exception as exc:
+                LOGGER.debug("Local LLM generation failed: %s", exc)
+                enriched.append(claim)
+                continue
+            verdict, rationale = self._parse_llm_verdict(response)
+            enriched.append(replace(claim, llm_verdict=verdict, llm_rationale=rationale))
+        return enriched
+
+    def _build_claim_prompt(self, description: str, claim: str) -> str:
+        description = description.strip() or "No description provided."
+        claim = claim.strip()
+        return (
+            "You are an impartial hackathon judge verifying factual claims.\n"
+            "Rate the claim as one of: plausible, needs_verification, implausible.\n"
+            "Provide a short reason.\n\n"
+            f"Project description:\n{description}\n\n"
+            f"Claim: \"{claim}\"\n\n"
+            "Respond with two lines exactly:\n"
+            "Verdict: <one word>\n"
+            "Reason: <explanation up to 25 words>\n"
+        )
+
+    def _parse_llm_verdict(self, response: str) -> Tuple[str, str]:
+        if not response:
+            return "needs_verification", "Local LLM returned empty response."
+        verdict_match = re.search(
+            r"verdict\s*:\s*(plausible|needs_verification|implausible)",
+            response,
+            re.IGNORECASE,
+        )
+        verdict = verdict_match.group(1).lower() if verdict_match else "needs_verification"
+        reason_match = re.search(r"reason\s*:\s*(.+)", response, re.IGNORECASE)
+        rationale = reason_match.group(1).strip() if reason_match else response.strip()[:160]
+        return verdict, rationale
 
     def _estimate_ai_generated(self, description: str) -> float:
         description = description.strip()

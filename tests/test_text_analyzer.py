@@ -34,3 +34,4 @@ def test_text_analyzer_similarity_and_claims(tmp_path: Path) -> None:
     assert result.similarity_matches[0].source == "sample"
     assert any("accuracy" in flag.statement.lower() for flag in result.suspect_claims)
     assert 0.0 <= result.ai_generated_likelihood <= 1.0
+    assert all(flag.llm_verdict is None for flag in result.suspect_claims)

@@ -52,6 +52,9 @@ def run_pipeline(
         embedding_model=config.text_embedding_model,
         top_k=config.text_similarity_top_k,
         ai_detector_model=config.text_ai_detector_model,
+        llm_model_path=config.resolved_text_llm_model_path,
+        llm_model_type=config.text_llm_model_type,
+        llm_max_tokens=config.text_llm_max_tokens,
     )
     code_analyzer = CodeAnalyzer()
     scorer = Scorer(judging_criteria)

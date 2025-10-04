@@ -70,6 +70,29 @@ tests/                # Pytest-based unit tests
    ```
 - These dependencies are optional; without them, the analyzer still performs lexical similarity, claim heuristics, and AI-generated scoring based on rule-based signals.
 
+#### Optional Local LLM Claim Verification
+
+- To enrich claim analysis with a local instruction-tuned model, download a GGUF file (e.g., `mistral-7b-instruct-v0.2.Q4_K_M.gguf`) into the `models/` folder.
+- Install `ctransformers` for lightweight CPU inference:
+   ```powershell
+   pip install ctransformers
+   ```
+- Point the pipeline at the model by updating `Config` (or environment) with:
+   - `text_llm_model_path`: relative or absolute path to the GGUF file
+   - `text_llm_model_type`: model family name (e.g., `mistral`, `llama`)
+   - `text_llm_max_tokens`: optional cap on generated reasoning tokens
+- When configured, the analyzer augments each flagged claim with a verdict (`plausible`, `needs_verification`, `implausible`) and a brief rationale; it falls back silently to heuristics if loading fails.
+- Quick-start download (requires Hugging Face access + `huggingface_hub`):
+   ```powershell
+   pip install huggingface_hub
+   python scripts/download_mistral.py
+   ```
+- End-to-end setup helper (installs `ctransformers`, `huggingface_hub`, then downloads the model):
+   ```powershell
+   ./scripts/setup_mistral.ps1
+   ```
+   The helper auto-detects the local `.venv` in the workspace; pass `-PythonPath` if you need a different interpreter.
+
 ## Extending the Pipeline
 
 - Replace the heuristic analyzers with ML-backed implementations.

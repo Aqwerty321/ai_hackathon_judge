@@ -23,6 +23,9 @@ class Config:
     text_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     text_similarity_top_k: int = 5
     text_ai_detector_model: str = "roberta-base-openai-detector"
+    text_llm_model_path: Path | None = Path("models") / "mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+    text_llm_model_type: str = "auto"
+    text_llm_max_tokens: int = 256
 
     def submission_dir(self, name: str | None = None) -> Path:
         target = Path(self.data_dir) / "submissions" / (name or self.default_submission_name)
@@ -45,3 +48,12 @@ class Config:
     @property
     def text_cache_dir(self) -> Path:
         return (self.base_dir / self.intermediate_dir / "text").resolve()
+
+    @property
+    def resolved_text_llm_model_path(self) -> Path | None:
+        if self.text_llm_model_path is None:
+            return None
+        path = Path(self.text_llm_model_path)
+        if not path.is_absolute():
+            path = (self.base_dir / path).resolve()
+        return path
