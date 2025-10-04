@@ -53,6 +53,10 @@ tests/                # Pytest-based unit tests
    ```powershell
    python -m pylint ai_judge/modules/code_analyzer.py --disable=missing-module-docstring,missing-function-docstring,too-many-locals,too-few-public-methods
    ```
+   5. (Optional) Validate leaderboard predictions against human labels:
+       ```powershell
+       python scripts/evaluate_predictions.py reports/leaderboard.csv --label-column human_label
+       ```
 
 ### Leaderboard & Explainable Reports
 

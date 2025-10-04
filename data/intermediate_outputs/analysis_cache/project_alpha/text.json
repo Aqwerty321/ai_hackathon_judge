@@ -1,0 +1,11 @@
+{
+  "fingerprint": "b2b914284e8a607b99cd178d7131260b5733cd67",
+  "payload": {
+    "originality_score": 0.971,
+    "feasibility_score": 1.0,
+    "summary": "Project Alpha is an AI-powered sustainability assistant that helps households reduce energy consumption through adaptive recommendations and smart automation.\nIt integrates sensor data, predicts high-usage patterns, and suggests personalized actions to stay within carbon budgets.",
+    "similarity_matches": [],
+    "suspect_claims": [],
+    "ai_generated_likelihood": 0.003
+  }
+}

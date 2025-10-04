@@ -1,0 +1,40 @@
+{
+  "fingerprint": "b2b914284e8a607b99cd178d7131260b5733cd67",
+  "payload": {
+    "readability_score": 0.833,
+    "documentation_score": 1.0,
+    "test_coverage_score_estimate": 0.08,
+    "details": {
+      "evaluated_files": [
+        "main.py"
+      ],
+      "lint": {
+        "status": "skipped",
+        "reason": "pylint not available"
+      },
+      "complexity": {
+        "status": "ok",
+        "average_complexity": 2.5,
+        "normalized_score": 0.8333333333333334,
+        "files": [
+          {
+            "path": "C:\\ai_hackathon_judge\\data\\submissions\\project_alpha\\code\\main.py",
+            "max_complexity": 3,
+            "average_complexity": 2.5
+          }
+        ]
+      },
+      "documentation": {
+        "status": "ok",
+        "objects": 3,
+        "docstrings": 3,
+        "ratio": 1.0,
+        "errors": []
+      },
+      "pytest": {
+        "status": "skipped",
+        "reason": "no tests directory"
+      }
+    }
+  }
+}

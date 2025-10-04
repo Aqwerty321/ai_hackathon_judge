@@ -1,0 +1,11 @@
+{
+  "fingerprint": "b2b914284e8a607b99cd178d7131260b5733cd67",
+  "payload": {
+    "transcript": "Hello judges. In this presentation, we introduce Project Alpha, an intelligent home companion focused on sustainability.\nThe system learns from your daily routines, forecasts energy demand, and automates routines to reduce carbon impact.\nWe conclude with a roadmap for scaling the platform across communities.",
+    "clarity_score": 1.0,
+    "estimated_duration_seconds": 30.0,
+    "sentiment_label": "positive",
+    "sentiment_score": 0.999,
+    "transcription_source": "submission_transcript"
+  }
+}

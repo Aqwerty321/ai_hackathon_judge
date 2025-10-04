@@ -1,0 +1,2 @@
+rank,submission,total_score,video_clarity,video_sentiment,text_originality,text_feasibility,code_readability,code_documentation,code_test_estimate
+1,project_alpha,0.901,1.0,0.999,0.971,1.0,0.833,1.0,0.08
