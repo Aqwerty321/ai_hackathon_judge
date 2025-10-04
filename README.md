@@ -10,6 +10,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
 - 📊 **Stage 5 explainability** with templated submission reports and a multi-metric leaderboard.
+- ⏱️ **Stage 6 observability** with pipeline caching, per-stage timing logs, and runtime enforcement.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
 - ✅ **Unit tests** covering the scoring logic and heuristic analyzers.
 
@@ -58,6 +59,13 @@ tests/                # Pytest-based unit tests
 - Individual submission reports now render via Jinja2 to `reports/<submission>_report.html`, featuring criteria tables, transcript excerpts, flagged claims, and code quality evidence.
 - Running the pipeline also writes `reports/leaderboard.csv`, a pandas-generated table aggregating total scores with key video/text/code metrics for easy ranking.
 - The report templates live under `ai_judge/templates/` for easy customization (branding, extra metrics, etc.).
+
+### Performance & Observability
+
+- The pipeline records per-stage timings (video/text/code/scoring/report) and logs them to stdout while returning them in the `run_metrics` payload.
+- Results are cached per submission fingerprint under `data/intermediate_outputs/analysis_cache/` so repeat runs reuse heavy analyzer outputs when inputs are unchanged.
+- Total runtime is enforced against a five-minute cap—exceeding it raises an error so long-running submissions surface immediately.
+- Clear the cache by deleting the `analysis_cache/` directory if you need to recompute from scratch.
 
 ### Continuous Integration
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 import hashlib
 import logging
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Iterable, Tuple
+from typing import Iterable, Mapping, Tuple
 
 from ..utils.file_helpers import ensure_directory, read_text
 
@@ -38,6 +38,20 @@ class VideoAnalysisResult:
     sentiment_label: str
     sentiment_score: float
     transcription_source: str
+
+    def to_dict(self) -> dict[str, object]:
+        return dict(asdict(self))
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "VideoAnalysisResult":
+        return cls(
+            transcript=str(data.get("transcript", "")),
+            clarity_score=float(data.get("clarity_score", 0.0)),
+            estimated_duration_seconds=float(data.get("estimated_duration_seconds", 0.0)),
+            sentiment_label=str(data.get("sentiment_label", "neutral")),
+            sentiment_score=float(data.get("sentiment_score", 0.0)),
+            transcription_source=str(data.get("transcription_source", "unknown")),
+        )
 
 
 class VideoAnalyzer:

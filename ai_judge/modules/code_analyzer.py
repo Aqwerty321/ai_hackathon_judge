@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import json
 import logging
 import os
 import subprocess
@@ -34,6 +35,27 @@ class CodeAnalysisResult:
     documentation_score: float
     test_coverage_score_estimate: float
     details: Mapping[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        details = json.loads(json.dumps(self.details))
+        return {
+            "readability_score": self.readability_score,
+            "documentation_score": self.documentation_score,
+            "test_coverage_score_estimate": self.test_coverage_score_estimate,
+            "details": details,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "CodeAnalysisResult":
+        details = data.get("details")
+        if not isinstance(details, Mapping):
+            details = {}
+        return cls(
+            readability_score=float(data.get("readability_score", 0.0)),
+            documentation_score=float(data.get("documentation_score", 0.0)),
+            test_coverage_score_estimate=float(data.get("test_coverage_score_estimate", 0.0)),
+            details=details,
+        )
 
     @property
     def quality_index(self) -> float:

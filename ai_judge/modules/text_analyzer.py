@@ -6,7 +6,7 @@ import math
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Iterable, Tuple
+from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 from ..utils.file_helpers import ensure_directory, read_text
 
@@ -42,6 +42,21 @@ class SimilarityMatch:
     score: float
     snippet: str
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "source": self.source,
+            "score": self.score,
+            "snippet": self.snippet,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "SimilarityMatch":
+        return cls(
+            source=str(data.get("source", "")),
+            score=float(data.get("score", 0.0)),
+            snippet=str(data.get("snippet", "")),
+        )
+
 
 @dataclass(frozen=True)
 class ClaimFlag:
@@ -51,6 +66,25 @@ class ClaimFlag:
     reason: str
     llm_verdict: str | None = None
     llm_rationale: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "statement": self.statement,
+            "reason": self.reason,
+            "llm_verdict": self.llm_verdict,
+            "llm_rationale": self.llm_rationale,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "ClaimFlag":
+        return cls(
+            statement=str(data.get("statement", "")),
+            reason=str(data.get("reason", "")),
+            llm_verdict=(data.get("llm_verdict") if data.get("llm_verdict") is not None else None),
+            llm_rationale=(
+                data.get("llm_rationale") if data.get("llm_rationale") is not None else None
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -63,6 +97,37 @@ class TextAnalysisResult:
     similarity_matches: Tuple[SimilarityMatch, ...]
     suspect_claims: Tuple[ClaimFlag, ...]
     ai_generated_likelihood: float
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "originality_score": self.originality_score,
+            "feasibility_score": self.feasibility_score,
+            "summary": self.summary,
+            "similarity_matches": [match.to_dict() for match in self.similarity_matches],
+            "suspect_claims": [claim.to_dict() for claim in self.suspect_claims],
+            "ai_generated_likelihood": self.ai_generated_likelihood,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "TextAnalysisResult":
+        matches = tuple(
+            SimilarityMatch.from_dict(item)
+            for item in data.get("similarity_matches", [])
+            if isinstance(item, Mapping)
+        )
+        claims = tuple(
+            ClaimFlag.from_dict(item)
+            for item in data.get("suspect_claims", [])
+            if isinstance(item, Mapping)
+        )
+        return cls(
+            originality_score=float(data.get("originality_score", 0.0)),
+            feasibility_score=float(data.get("feasibility_score", 0.0)),
+            summary=str(data.get("summary", "")),
+            similarity_matches=matches,
+            suspect_claims=claims,
+            ai_generated_likelihood=float(data.get("ai_generated_likelihood", 0.0)),
+        )
 
 
 class TextAnalyzer:

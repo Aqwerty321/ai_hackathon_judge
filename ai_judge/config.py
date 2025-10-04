@@ -57,3 +57,7 @@ class Config:
         if not path.is_absolute():
             path = (self.base_dir / path).resolve()
         return path
+
+    @property
+    def analysis_cache_dir(self) -> Path:
+        return (self.base_dir / self.intermediate_dir / "analysis_cache").resolve()
