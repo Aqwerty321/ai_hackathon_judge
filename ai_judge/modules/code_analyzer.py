@@ -12,13 +12,6 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 try:  # pragma: no cover - optional dependency during tests
-    from pylint.lint import Run as PylintRun
-    from pylint.reporters.collecting import CollectingReporter
-except ImportError:  # pragma: no cover - executed when pylint missing
-    PylintRun = None  # type: ignore
-    CollectingReporter = None  # type: ignore
-
-try:  # pragma: no cover - optional dependency during tests
     from radon.complexity import cc_visit
 except ImportError:  # pragma: no cover
     cc_visit = None  # type: ignore
@@ -357,63 +350,7 @@ class CodeAnalyzer:
         return best_dir
 
     # ------------------------------------------------------------------
-    # Linting / complexity / documentation utilities
-    def _run_pylint(
-        self, code_dir: Path, python_files: Iterable[Path]
-    ) -> Tuple[Optional[float], Mapping[str, Any]]:
-        # Validate that all files are within code_dir to prevent analyzing outside files
-        code_dir_resolved = code_dir.resolve()
-        validated_files = []
-        for path in python_files:
-            try:
-                path_resolved = path.resolve()
-                # Only include files that are actually within the code directory
-                if path_resolved.is_relative_to(code_dir_resolved):
-                    validated_files.append(str(path_resolved))
-                else:
-                    LOGGER.warning("Skipping file outside code directory: %s", path)
-            except (ValueError, OSError) as e:
-                LOGGER.debug("Failed to validate path %s: %s", path, e)
-                continue
-        
-        if not validated_files or PylintRun is None or CollectingReporter is None:
-            return None, {"status": "skipped", "reason": "pylint not available or no valid files"}
-
-        reporter = CollectingReporter()
-        args = [*validated_files, "--score=y", "--reports=n"]
-        with self._cwd(code_dir):
-            try:  # pragma: no cover - heavy external call
-                run = PylintRun(args, reporter=reporter, do_exit=False)
-            except (OSError, RuntimeError) as exc:  # pragma: no cover
-                LOGGER.debug("pylint execution failed: %s", exc)
-                return None, {"status": "error", "error": str(exc)}
-
-        score = None
-        if hasattr(run, "linter"):
-            stats = getattr(run.linter, "stats", None)
-            score = getattr(stats, "global_note", None) if stats is not None else None
-        normalized = None
-        if isinstance(score, (int, float)):
-            normalized = max(0.0, min(1.0, score / 10.0))
-
-        messages = [
-            {
-                "path": msg.path,
-                "line": msg.line,
-                "symbol": msg.symbol,
-                "message": msg.msg or msg.message,
-                "category": msg.category,
-            }
-            for msg in reporter.messages
-        ]
-
-        return normalized, {
-            "status": "ok",
-            "raw_score": score,
-            "normalized_score": normalized,
-            "messages": messages,
-        }
-
+    # Complexity / documentation utilities
     def _compute_complexity(
         self, python_files: Iterable[Path]
     ) -> Tuple[Optional[float], Mapping[str, Any]]:
