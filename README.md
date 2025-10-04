@@ -6,6 +6,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 
 - 🔍 **Modular analyzers** for video, text, and code signals.
 - 🎥 **Video pipeline** with optional Whisper transcription + sentiment analysis and caching.
+- 🧾 **Code-only friendly**: gracefully falls back to README/description text when no video is provided.
 - 📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
@@ -92,6 +93,7 @@ tests/                # Pytest-based unit tests
    pip install openai-whisper moviepy transformers
    ```
 - Without these packages, the analyzer falls back to cached transcripts and lightweight heuristics.
+- Submissions without a video file are supported; the analyzer reuses README/description text for clarity and sentiment estimates while leaving the rest of the pipeline intact.
 
 ### Text Analysis Extras
 
@@ -133,9 +135,9 @@ PY
 
 #### Optional Web Evidence Checks
 
-- Install [`duckduckgo-search`](https://pypi.org/project/duckduckgo-search/) to let the analyzer fetch lightweight supporting evidence for suspect claims:
+- Install [`ddgs`](https://pypi.org/project/ddgs/) (formerly `duckduckgo-search`) to let the analyzer fetch lightweight supporting evidence for suspect claims:
    ```powershell
-   pip install duckduckgo-search
+   pip install ddgs
    ```
 - When installed, each flagged claim is annotated with an evidence status, note, and up to three supporting snippets in the submission report. If the package is missing or network access fails, the verification step is skipped gracefully.
 

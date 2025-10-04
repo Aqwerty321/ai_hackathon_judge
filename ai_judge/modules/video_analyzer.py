@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Iterable, Mapping, Tuple
 
-from ..utils.file_helpers import ensure_directory, read_text
+from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
 
 try:  # pragma: no cover - optional heavy dependency
     import whisper
@@ -77,10 +77,10 @@ class VideoAnalyzer:
         transcript, source = self._load_transcript(submission_dir, transcript_path)
 
         if not transcript.strip():
-            raw_fallback = read_text(submission_dir / "description.txt")
-            if raw_fallback.strip():
-                transcript = raw_fallback
-                source = "description_fallback"
+            fallback_text, fallback_source = read_submission_description(submission_dir)
+            if fallback_text.strip():
+                transcript = fallback_text
+                source = fallback_source
             else:
                 transcript = "\n".join(self._fallback_lines) or "No transcript available."
                 source = "manual_fallback"
@@ -201,8 +201,12 @@ class VideoAnalyzer:
             result = self._sentiment_pipeline(truncated)[0]
             label = str(result.get("label", "neutral")).lower()
             score = float(result.get("score", 0.0))
-            if label in {"positive", "neg", "negative", "neutral"}:
-                label = label.replace("neg", "negative")
+            if label in {"pos", "positive"}:
+                label = "positive"
+            elif label in {"neg", "negative"}:
+                label = "negative"
+            elif label != "neutral":
+                label = "neutral"
             return label, round(score, 3)
         except Exception as exc:
             LOGGER.debug("Sentiment analysis failed: %s", exc)

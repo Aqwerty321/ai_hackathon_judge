@@ -32,3 +32,18 @@ def test_video_analyzer_description_fallback(tmp_path: Path) -> None:
     assert "innovation" in result.transcript
     assert result.transcription_source == "description_fallback"
     assert result.sentiment_label in {"positive", "negative", "neutral"}
+
+
+def test_video_analyzer_readme_fallback(tmp_path: Path) -> None:
+    submission_dir = tmp_path
+    (submission_dir / "README.md").write_text(
+        "Project overview: zero bugs guarantee.",
+        encoding="utf-8",
+    )
+
+    analyzer = VideoAnalyzer(intermediate_dir=submission_dir / "cache")
+    result = analyzer.analyze(submission_dir)
+
+    assert "project overview" in result.transcript.lower()
+    assert result.transcription_source == "readme_fallback"
+    assert result.sentiment_label in {"positive", "negative", "neutral"}

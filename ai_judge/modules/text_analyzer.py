@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 import math
 import re
+import warnings
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
-from ..utils.file_helpers import ensure_directory, read_text
+from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
 
 try:  # pragma: no cover - optional heavy dependencies
     from sentence_transformers import SentenceTransformer  # type: ignore
@@ -30,9 +31,19 @@ except ImportError:  # pragma: no cover - optional heavy dependencies
     AutoModelForCausalLM = None  # type: ignore
 
 try:  # pragma: no cover - optional dependency
-    from duckduckgo_search import DDGS  # type: ignore
+    from ddgs import DDGS  # type: ignore
 except ImportError:  # pragma: no cover
-    DDGS = None  # type: ignore
+    try:
+        from duckduckgo_search import DDGS  # type: ignore
+    except ImportError:  # pragma: no cover
+        DDGS = None  # type: ignore
+
+if DDGS is not None and getattr(DDGS, "__module__", "").startswith("duckduckgo_search"):
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*duckduckgo_search.*renamed to `ddgs`",
+        category=RuntimeWarning,
+    )
 
 
 LOGGER = logging.getLogger(__name__)
@@ -234,7 +245,7 @@ class TextAnalyzer:
         self._llm = None
 
     def analyze(self, submission_dir: Path) -> TextAnalysisResult:
-        description = read_text(submission_dir / "description.txt")
+        description, _ = read_submission_description(submission_dir)
         word_count = len(description.split())
         matches = self._compute_similarity(description)
         originality = self._estimate_originality(description, matches)
