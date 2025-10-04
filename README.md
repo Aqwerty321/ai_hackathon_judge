@@ -72,7 +72,7 @@ tests/                # Pytest-based unit tests
 
 #### Optional Local LLM Claim Verification
 
-- To enrich claim analysis with a local instruction-tuned model, download a GGUF file (e.g., `mistral-7b-instruct-v0.2.Q4_K_M.gguf`) into the `models/` folder.
+- To enrich claim analysis with a local instruction-tuned model, place `mistral-7b-instruct-v0.2.Q4_K_M.gguf` into the `models/` folder (already present via the setup steps).
 - Install `ctransformers` for lightweight CPU inference:
    ```powershell
    pip install ctransformers
@@ -82,16 +82,23 @@ tests/                # Pytest-based unit tests
    - `text_llm_model_type`: model family name (e.g., `mistral`, `llama`)
    - `text_llm_max_tokens`: optional cap on generated reasoning tokens
 - When configured, the analyzer augments each flagged claim with a verdict (`plausible`, `needs_verification`, `implausible`) and a brief rationale; it falls back silently to heuristics if loading fails.
-- Quick-start download (requires Hugging Face access + `huggingface_hub`):
+- If you ever need to re-download it, authenticate with `huggingface-cli login`, install `huggingface_hub`, and run:
    ```powershell
-   pip install huggingface_hub
-   python scripts/download_mistral.py
+   python - <<'PY'
+from huggingface_hub import hf_hub_download
+from pathlib import Path
+
+path = hf_hub_download(
+    repo_id="TheBloke/Mistral-7B-Instruct-v0.2-GGUF",
+    filename="mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+)
+dest = Path("models") / "mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+dest.parent.mkdir(parents=True, exist_ok=True)
+if Path(path) != dest:
+    dest.write_bytes(Path(path).read_bytes())
+print(f"Model ready at {dest}")
+PY
    ```
-- End-to-end setup helper (installs `ctransformers`, `huggingface_hub`, then downloads the model):
-   ```powershell
-   ./scripts/setup_mistral.ps1
-   ```
-   The helper auto-detects the local `.venv` in the workspace; pass `-PythonPath` if you need a different interpreter.
 
 ## Extending the Pipeline
 
