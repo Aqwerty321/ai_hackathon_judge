@@ -1,0 +1,17 @@
+<%- include("partials/header.ejs") %>
+<main>
+  <div class="container">
+    <h2>My Rewards</h2>
+    <% if (rewards && rewards.length > 0) { %> <% rewards.forEach(reward => { %>
+    <div class="rewardBox">
+      <h3><%= reward.name %></h3>
+      <p><%= reward.description %></p>
+      <p>Earned <%= reward.earnedAt %></p>
+    </div>
+    <% }); %> <% } else { %>
+    <p>No rewards yet!</p>
+    <% } %>
+  </div>
+</main>
+<% if (user) { %> <%- include("partials/mainGameFooter.ejs") %> <% } else { %>
+<%- include("partials/footer.ejs") %> <% } %>

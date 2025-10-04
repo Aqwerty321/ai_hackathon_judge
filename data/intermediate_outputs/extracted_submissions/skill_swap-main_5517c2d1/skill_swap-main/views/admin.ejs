@@ -1,0 +1,90 @@
+<%- include("partials/adminHeader.ejs") %>
+
+<div class="containerAdmin">
+  <h1 class="text-center mb-4">Admin Panel</h1>
+
+  <div class="row text-center">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h3>Total Users</h3>
+          <p id="total-users"><%= totalUsers %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h3>Total Posts</h3>
+          <p id="total-posts"><%= totalPosts %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h3>Total Affiliates</h3>
+          <p id="total-affiliates"><%= totalAffiliates %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="userslist mt-5">
+    <h2>User List</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Skills</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.username %></td>
+          <td><%= user.email %></td>
+          <td><%= user.skills.join(', ') %></td>
+          <td>
+            <a
+              href="users/admin/delete-user/<%= user._id %>"
+              class="btn btn-danger"
+              >Delete</a
+            >
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include("partials/footer.ejs") %>
+<style>
+  .containerAdmin {
+    padding: 2rem 10rem;
+  }
+  .userslist {
+    padding-top: 5rem;
+  }
+  .card {
+    margin: 1rem 0;
+  }
+
+  .card-body {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+
+  .table {
+    margin-top: 2rem;
+  }
+
+  .table th,
+  .table td {
+    text-align: center;
+  }
+</style>

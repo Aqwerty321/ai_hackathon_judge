@@ -1,0 +1,145 @@
+{
+  "fingerprint": "ecf28b398d45a60cdeff2c0b257944cfb83aa820",
+  "payload": {
+    "originality_score": 0.628,
+    "feasibility_score": 1.0,
+    "summary": "# Skill Swap - Monetize Your Expertise: Swap Skills for Success! ![Preview Image](image.png) Skill Swap is an innovative platform designed to connect individuals seeking to share and learn skills collaboratively. In a world where knowledge is power, Skill Swap empowers...",
+    "similarity_matches": [],
+    "suspect_claims": [
+      {
+        "statement": "## Features\n\n- User registration and authentication\n- Profile management\n- Request and offer skills\n- Dashboard for managing skills and requests\n- User-friendly interface\n- And many more updates to come\n\n## Installation\n\n1",
+        "reason": "Contains quantifiable claim requiring verification",
+        "llm_verdict": null,
+        "llm_rationale": null,
+        "verification_result": {
+          "status": "needs_review",
+          "note": "No clear supporting evidence found; manual review recommended.",
+          "evidence": [
+            {
+              "title": "WorkOS The 5 best user management software tools in 2024 — WorkOS",
+              "url": "https://workos.com/blog/best-user-management-software-2024",
+              "snippet": "December 12, 2024 - Discover the best user management software tools in 2024, their key features , and why you should consider them for your app."
+            },
+            {
+              "title": "Zluri 11 Top User Access Management Tools in 2025 | Zluri",
+              "url": "https://www.zluri.com/blog/user-access-management-tools",
+              "snippet": "Microsoft Entra ID uses adaptive authentication and risk-based adaptive access policies to safeguard critical resources and data. This ensures that access is granted to authorized individuals while preventing potential threats · It also provides your employees the freedom to manage their ..."
+            },
+            {
+              "title": "WorkOS User Management — WorkOS",
+              "url": "https://workos.com/user-management",
+              "snippet": "WorkOS offers a complete solution for authentication , user management , and provisioning. It includes custom authentication UI and APIs for user management ."
+            }
+          ]
+        },
+        "verification_status": "needs_review",
+        "verification_evidence": [
+          "December 12, 2024 - Discover the best user management software tools in 2024, their key features , and why you should consider them for your app.",
+          "Microsoft Entra ID uses adaptive authentication and risk-based adaptive access policies to safeguard critical resources and data. This ensures that access is granted to authorized individuals while preventing potential threats · It also provides your employees the freedom to manage their ...",
+          "WorkOS offers a complete solution for authentication , user management , and provisioning. It includes custom authentication UI and APIs for user management ."
+        ]
+      },
+      {
+        "statement": "Clone the repository:\n\n   ```bash\n   git clone https://github.com/adityadhiman-in/skill-swap.git\n   ```\n\n2",
+        "reason": "Contains quantifiable claim requiring verification",
+        "llm_verdict": null,
+        "llm_rationale": null,
+        "verification_result": {
+          "status": "verified",
+          "note": "Found 3 supporting source(s).",
+          "evidence": [
+            {
+              "title": "Cloning a repository - GitHub Docs",
+              "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository",
+              "snippet": "You can clone a repository from GitHub .com to your local computer, or to a codespace, to make it easier to fix merge conflicts, add or remove files, and push larger commits."
+            },
+            {
+              "title": "How to Git Clone a Remote Repository? - GeeksforGeeks",
+              "url": "https://www.geeksforgeeks.org/git/how-to-git-clone-a-remote-repository/",
+              "snippet": "Jul 23, 2025 · Follow these steps to clone a remote Git repository : First, open your terminal (on macOS or Linux) or command prompt (on Windows). Step 2. Navigate to the Desired Directory. Navigate to the directory where you want to clone the repository . Use the cd command to change directories. For example:"
+            },
+            {
+              "title": "Git Bash Clone Repository: Your QuickStart Guide",
+              "url": "https://bashcommands.com/git-bash-clone-repository",
+              "snippet": "Master the art of version control and discover how to git bash clone repository with ease. This guide simplifies the process into quick steps."
+            }
+          ]
+        },
+        "verification_status": "verified",
+        "verification_evidence": [
+          "You can clone a repository from GitHub .com to your local computer, or to a codespace, to make it easier to fix merge conflicts, add or remove files, and push larger commits.",
+          "Jul 23, 2025 · Follow these steps to clone a remote Git repository : First, open your terminal (on macOS or Linux) or command prompt (on Windows). Step 2. Navigate to the Desired Directory. Navigate to the directory where you want to clone the repository . Use the cd command to change directories. For example:",
+          "Master the art of version control and discover how to git bash clone repository with ease. This guide simplifies the process into quick steps."
+        ]
+      },
+      {
+        "statement": "Navigate into the project directory:\n\n   ```bash\n   cd your-repository-name\n   ```\n\n3",
+        "reason": "Contains quantifiable claim requiring verification",
+        "llm_verdict": null,
+        "llm_rationale": null,
+        "verification_result": {
+          "status": "verified",
+          "note": "Found 3 supporting source(s).",
+          "evidence": [
+            {
+              "title": "Medium How to Find Your Project Folder Easily From Bash | by Sabbir Mollah | Medium",
+              "url": "https://mollahsabbir.medium.com/how-to-find-your-project-folder-easily-from-bash-863342062341",
+              "snippet": "October 5, 2023 - work command will cd your terminal to your workspace folder, saving you the time of typing something like cd ~/Path/To/Projects/workspace/ . work --now will help you when you have a brand new project idea, and you don’t want to waste 5 seconds of time by (1) searching your file manager, (2) ..."
+            },
+            {
+              "title": "Git Scripts Mastering Git Bash CD: Navigate Your Repositories Quickly",
+              "url": "https://gitscripts.com/git-bash-cd",
+              "snippet": "May 22, 2024 - This feature significantly speeds up navigation and diminishes the chances of errors in long directory names. ... In summary, mastering the ` git bash cd ` command is fundamental for effective navigation within the Git ecosystem."
+            },
+            {
+              "title": "Brainly [FREE] Navigate to the project directory: (Type this into your command window to navigate to the repository you - brainly.com",
+              "url": "https://brainly.com/question/31688552",
+              "snippet": "Using the 'cd' command in this ... repository is named 'MyProject' and is located on your desktop, your command would look like: cd C:\\Users\\YourUsername\\Desktop\\MyProject ...."
+            }
+          ]
+        },
+        "verification_status": "verified",
+        "verification_evidence": [
+          "October 5, 2023 - work command will cd your terminal to your workspace folder, saving you the time of typing something like cd ~/Path/To/Projects/workspace/ . work --now will help you when you have a brand new project idea, and you don’t want to waste 5 seconds of time by (1) searching your file manager, (2) ...",
+          "May 22, 2024 - This feature significantly speeds up navigation and diminishes the chances of errors in long directory names. ... In summary, mastering the ` git bash cd ` command is fundamental for effective navigation within the Git ecosystem.",
+          "Using the 'cd' command in this ... repository is named 'MyProject' and is located on your desktop, your command would look like: cd C:\\Users\\YourUsername\\Desktop\\MyProject ...."
+        ]
+      },
+      {
+        "statement": "Install Dependencies\n   ```\n   npm i\n   ```\n4",
+        "reason": "Contains quantifiable claim requiring verification",
+        "llm_verdict": null,
+        "llm_rationale": null,
+        "verification_result": {
+          "status": "verified",
+          "note": "Found 3 supporting source(s).",
+          "evidence": [
+            {
+              "title": "npm-install - npm Docs",
+              "url": "https://docs.npmjs.com/cli/v9/commands/npm-install/?v=true",
+              "snippet": "By default, npm install will install all modules listed as dependencies in package.json. With the --production flag (or when the NODE_ENV environment variable is set to production), npm will not install modules listed in devDependencies ."
+            },
+            {
+              "title": "node.js - How do I install all the requirements with npm ...",
+              "url": "https://stackoverflow.com/questions/42969517/how-do-i-install-all-the-requirements-with-npm",
+              "snippet": "Mar 23, 2017 · Just run npm install without arguments. It will resolve the required dependencies from the package.json file. Sign up to request clarification or add additional context in comments. Does npm install also install everything from package.json if they were not already installed? It's simple."
+            },
+            {
+              "title": "npm install command - GeeksforGeeks",
+              "url": "https://www.geeksforgeeks.org/node-js/npm-install-command/",
+              "snippet": "Sep 24, 2024 · It allows developers to install dependencies from the package.json file as well as additional packages from the npm registry. This command simplifies the process of setting up a project managing dependencies and ensuring all necessary modules are available for development."
+            }
+          ]
+        },
+        "verification_status": "verified",
+        "verification_evidence": [
+          "By default, npm install will install all modules listed as dependencies in package.json. With the --production flag (or when the NODE_ENV environment variable is set to production), npm will not install modules listed in devDependencies .",
+          "Mar 23, 2017 · Just run npm install without arguments. It will resolve the required dependencies from the package.json file. Sign up to request clarification or add additional context in comments. Does npm install also install everything from package.json if they were not already installed? It's simple.",
+          "Sep 24, 2024 · It allows developers to install dependencies from the package.json file as well as additional packages from the npm registry. This command simplifies the process of setting up a project managing dependencies and ensuring all necessary modules are available for development."
+        ]
+      }
+    ],
+    "ai_generated_likelihood": 0.0,
+    "combined_summary": null
+  }
+}

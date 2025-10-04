@@ -1,0 +1,79 @@
+<%- include("partials/header.ejs") %>
+<div class="flexBetween">
+  <div class="homeContainer">
+    <h1>Welcome To Skill Swap</h1>
+
+    <div class="storyContent">
+      <h2>
+        The OneStop Destination for All Skill Full Professionals & Professional
+        Seekers
+      </h2>
+      <div class="chapterContent">
+        <p id="displayedText"></p>
+      </div>
+      <div class="buttonContainer">
+        <button class="nextChapter" id="nextChapterButton">Next</button>
+        <button class="playButton" id="playButton" style="display: none">
+          Explore Now
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const chapters = [
+        "Welcome to Skill Swap! We empower individuals to share their knowledge and learn from one another. Our platform connects learners with mentors, creating a vibrant community dedicated to personal and professional growth.",
+
+        "In a world that thrives on collaboration, Skill Swap simplifies the process of skill-sharing. Whether you want to learn a new skill or teach something you're passionate about, our user-friendly interface makes it easy to find the right match and start your learning journey.",
+
+        "Why choose Skill Swap? We foster a supportive environment where skills are exchanged, friendships are forged, and personal development is prioritized. With a diverse range of skills available, there’s something for everyone, ensuring that you can grow and expand your horizons.",
+
+        "Using Skill Swap is simple! Create an account, browse through available skills, and connect with users who can help you or whom you can teach. Our platform provides tools for scheduling sessions, providing feedback, and building meaningful connections with fellow learners.",
+
+        "Ready to transform your learning experience and be part of an inspiring community? Join us at Skill Swap and let’s kick off your journey toward skill-sharing and personal growth! Together, we can learn, teach, and make a difference.",
+      ];
+
+      let currentChapter = 0;
+      const displayedText = document.getElementById("displayedText");
+      const nextChapterButton = document.getElementById("nextChapterButton");
+      const playButton = document.getElementById("playButton");
+
+      function displayText(text) {
+        let index = 0;
+        displayedText.innerHTML = "";
+        // Clear any previous interval
+        clearInterval(window.textTimer);
+
+        // Start a new interval for typing effect
+        window.textTimer = setInterval(() => {
+          displayedText.textContent += text.charAt(index);
+          index += 1;
+          if (index >= text.length) {
+            clearInterval(window.textTimer);
+          }
+        }, 30);
+      }
+
+      function handleNextChapter() {
+        if (currentChapter < chapters.length - 1) {
+          currentChapter += 1;
+          displayText(chapters[currentChapter]);
+          if (currentChapter === chapters.length - 1) {
+            nextChapterButton.style.display = "none";
+            playButton.style.display = "inline-block";
+          }
+        }
+      }
+
+      nextChapterButton.addEventListener("click", handleNextChapter);
+
+      playButton.addEventListener("click", function () {
+        window.location.href = "/users/explore";
+      });
+
+      // Initially display the first chapter
+      displayText(chapters[currentChapter]);
+    </script>
+  </div>
+</div>
+<% if (user) { %> <%- include("partials/mainGameFooter.ejs") %> <% } else { %>
+<%- include("partials/footer.ejs") %> <% } %>

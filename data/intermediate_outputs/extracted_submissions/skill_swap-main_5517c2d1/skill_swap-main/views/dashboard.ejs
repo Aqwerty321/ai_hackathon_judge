@@ -1,0 +1,68 @@
+<%- include('partials/header.ejs') %>
+
+<div class="container my-5">
+  <h1 class="text-center mb-4">Dashboard for <%= user.username %></h1>
+
+  <div class="row">
+    <!-- User Information -->
+    <div class="col-md-4">
+      <h2>User Information</h2>
+      <p><strong>Name:</strong> <%= user.name %></p>
+      <p><strong>Email:</strong> <%= user.email %></p>
+      <p><strong>Affiliate Rewards:</strong> "Currently Not Available"</p>
+    </div>
+
+    <!-- User Posts -->
+    <div class="col-md-8">
+      <h2>Your Posts</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Post Title</th>
+            <th>Date Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.forEach(post => { %>
+          <tr>
+            <td><%= post.title %></td>
+            <td><%= post.createdAt.toDateString() %></td>
+          </tr>
+          <% }) %> <% if (posts.length === 0) { %>
+          <tr>
+            <td colspan="2" class="text-center">No posts found</td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-md-12">
+      <h2>Your Affiliate Rewards</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Reward</th>
+            <th>Date Earned</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% affiliateRewards.forEach(reward => { %>
+          <tr>
+            <td><%= reward.description %></td>
+            <td><%= reward.date.toDateString() %></td>
+          </tr>
+          <% }) %> <% if (affiliateRewards.length === 0) { %>
+          <tr>
+            <td colspan="2" class="text-center">No rewards found</td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer.ejs') %>

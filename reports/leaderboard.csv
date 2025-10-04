@@ -1,2 +1,2 @@
 rank,submission,total_score,video_clarity,video_sentiment,text_originality,text_feasibility,code_readability,code_documentation,code_test_estimate
-1,brein-review-2-main.zip,0.644,0.533,0.999,0.653,1.0,0.76,0.3,0.04
+1,skill_swap-main,0.777,1.0,0.603,0.628,1.0,0.867,0.5,0.3

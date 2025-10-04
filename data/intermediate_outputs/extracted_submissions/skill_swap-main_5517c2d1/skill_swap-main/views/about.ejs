@@ -1,0 +1,57 @@
+<%- include("partials/header.ejs") %>
+
+<div class="container my-5">
+  <h1 class="text-center mb-4">About Us</h1>
+  <div class="row">
+    <div class="col-lg-6">
+      <p class="lead text-muted">
+        Welcome to <strong class="brand-name">Skill Swap</strong>! We are
+        dedicated to creating a vibrant community where individuals can share
+        their skills and knowledge while learning from each other. Our platform
+        serves as a bridge, connecting people who are eager to teach and those
+        who are ready to learn, fostering a culture of collaboration and
+        continuous growth.
+      </p>
+      <p>
+        At <strong class="brand-name">Skill Swap</strong>, users can explore a
+        variety of skills ranging from coding and photography to cooking and
+        gardening. Our user-friendly interface makes it easy for anyone to find
+        a mentor or a student, engage in skill-sharing sessions, and earn
+        rewards for their contributions to the community. We believe that
+        everyone has something valuable to share and that learning should be an
+        enjoyable journey.
+      </p>
+      <p>
+        Whether you're looking to enhance your abilities or simply want to share
+        your passion with others, <strong>Skill Swap</strong> provides an
+        exciting platform for personal and professional development. Join us in
+        building a community where skills are exchanged, and friendships are
+        forged!
+      </p>
+    </div>
+  </div>
+
+  <!-- Mission Section -->
+  <div class="mission-section mt-5 text-center">
+    <h2 class="mb-4">Our Mission</h2>
+    <p class="lead">
+      At <strong class="brand-name">Skill Swap</strong>, our mission is to
+      empower individuals through skill-sharing and collaboration. We strive to
+      create an inclusive environment where learners and mentors can connect,
+      fostering a sense of belonging and shared purpose. We believe that skill
+      exchange is not just about teaching and learning; it's about building
+      relationships and creating a supportive community that thrives on the
+      diverse talents of its members.
+    </p>
+    <p>
+      We are committed to making personal development accessible and enjoyable
+      for everyone. Our vision is to inspire individuals to unlock their
+      potential, embrace new challenges, and cultivate a lifelong love for
+      learning. Together, we can transform the way we share knowledge and grow,
+      one skill at a time!
+    </p>
+  </div>
+</div>
+
+<% if (user) { %> <%- include("partials/mainGameFooter.ejs") %> <% } else { %>
+<%- include("partials/footer.ejs") %> <% } %>
