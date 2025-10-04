@@ -78,6 +78,7 @@ class CodeAnalyzer:
     _SKIP_DIR_NAMES = {
         "__pycache__",
         ".git",
+        ".github",  # GitHub workflows and configs
         "node_modules",
         "venv",
         ".venv",
@@ -90,6 +91,12 @@ class CodeAnalyzer:
         "target",  # Maven/Gradle
         "bin",
         "obj",  # .NET
+        ".tox",
+        ".nox",
+        "htmlcov",
+        "coverage",
+        ".eggs",
+        "site-packages",
     }
 
     # Language extensions mapping
@@ -355,12 +362,26 @@ class CodeAnalyzer:
     def _run_pylint(
         self, code_dir: Path, python_files: Iterable[Path]
     ) -> Tuple[Optional[float], Mapping[str, Any]]:
-        files = [str(path) for path in python_files]
-        if not files or PylintRun is None or CollectingReporter is None:
-            return None, {"status": "skipped", "reason": "pylint not available"}
+        # Validate that all files are within code_dir to prevent analyzing outside files
+        code_dir_resolved = code_dir.resolve()
+        validated_files = []
+        for path in python_files:
+            try:
+                path_resolved = path.resolve()
+                # Only include files that are actually within the code directory
+                if path_resolved.is_relative_to(code_dir_resolved):
+                    validated_files.append(str(path_resolved))
+                else:
+                    LOGGER.warning("Skipping file outside code directory: %s", path)
+            except (ValueError, OSError) as e:
+                LOGGER.debug("Failed to validate path %s: %s", path, e)
+                continue
+        
+        if not validated_files or PylintRun is None or CollectingReporter is None:
+            return None, {"status": "skipped", "reason": "pylint not available or no valid files"}
 
         reporter = CollectingReporter()
-        args = [*files, "--score=y", "--reports=n"]
+        args = [*validated_files, "--score=y", "--reports=n"]
         with self._cwd(code_dir):
             try:  # pragma: no cover - heavy external call
                 run = PylintRun(args, reporter=reporter, do_exit=False)
@@ -405,6 +426,8 @@ class CodeAnalyzer:
 
         for path in python_files:
             try:
+                # Resolve path to ensure it's valid and within expected bounds
+                path = path.resolve()
                 text = path.read_text(encoding="utf-8")
             except OSError:
                 continue
