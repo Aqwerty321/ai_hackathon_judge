@@ -1,0 +1,48 @@
+{
+  "fingerprint": "a76e17cd1a6889c80b073261d7d3459acdc198ce",
+  "payload": {
+    "readability_score": 0.0,
+    "documentation_score": 0.0,
+    "test_coverage_score_estimate": 0.04,
+    "details": {
+      "evaluated_files": [
+        "app.py",
+        "templates\\app.py"
+      ],
+      "code_root": ".",
+      "discovered_code_root": true,
+      "lint": {
+        "status": "skipped",
+        "reason": "pylint not available"
+      },
+      "complexity": {
+        "status": "ok",
+        "average_complexity": 46.166666666666664,
+        "normalized_score": 0.0,
+        "files": [
+          {
+            "path": "C:\\ai_hackathon_judge\\data\\intermediate_outputs\\extracted_submissions\\brein-review-2-main_af2c460d\\brein-review-2-main\\app.py",
+            "max_complexity": 264,
+            "average_complexity": 46.166666666666664
+          },
+          {
+            "path": "C:\\ai_hackathon_judge\\data\\intermediate_outputs\\extracted_submissions\\brein-review-2-main_af2c460d\\brein-review-2-main\\templates\\app.py",
+            "max_complexity": 264,
+            "average_complexity": 46.166666666666664
+          }
+        ]
+      },
+      "documentation": {
+        "status": "ok",
+        "objects": 14,
+        "docstrings": 0,
+        "ratio": 0.0,
+        "errors": []
+      },
+      "pytest": {
+        "status": "skipped",
+        "reason": "no tests directory"
+      }
+    }
+  }
+}

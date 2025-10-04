@@ -18,6 +18,11 @@ except ImportError:  # pragma: no cover - gracefully skip charts without matplot
     plt = None  # type: ignore
     matplotlib = None  # type: ignore
 
+try:  # pragma: no cover - optional dependency for markdown rendering
+    import markdown
+except ImportError:  # pragma: no cover
+    markdown = None  # type: ignore
+
 
 @dataclass(slots=True)
 class ReportGenerator:
@@ -33,6 +38,22 @@ class ReportGenerator:
             trim_blocks=True,
             lstrip_blocks=True,
         )
+        # Add markdown filter for rendering AI insights
+        def markdown_filter(text):
+            if not text:
+                return ""
+            if markdown is not None:
+                try:
+                    return markdown.markdown(
+                        text,
+                        extensions=['extra', 'nl2br', 'sane_lists']
+                    )
+                except Exception:
+                    # Fallback to plain text if markdown fails
+                    return text
+            return text
+        
+        self._env.filters['markdown'] = markdown_filter
 
     def generate_submission_report(self, submission_name: str, payload: Mapping[str, Any]) -> Path:
         ensure_directory(self.output_dir)
@@ -62,6 +83,7 @@ class ReportGenerator:
         complexity_section = details.get("complexity") if isinstance(details, Mapping) else {}
         documentation_section = details.get("documentation") if isinstance(details, Mapping) else {}
         pytest_section = details.get("pytest") if isinstance(details, Mapping) else {}
+        gemini_insights = details.get("gemini_insights") if isinstance(details, Mapping) else None
 
         top_matches = list(text.get("similarity_matches") or [])[:3]
         claims = list(text.get("suspect_claims") or [])
@@ -103,6 +125,7 @@ class ReportGenerator:
             "complexity": complexity_section,
             "documentation": documentation_section,
             "pytest_details": pytest_section,
+            "gemini_insights": gemini_insights,
             "charts": chart_paths,
         }
 

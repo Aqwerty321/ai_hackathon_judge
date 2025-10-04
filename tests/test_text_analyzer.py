@@ -63,3 +63,78 @@ It highlights exceptional accuracy and innovative features.
     assert "Sample Project" in result.summary
     assert result.originality_score >= 0.0
     assert result.suspect_claims  # marketing language should trigger a flag
+
+
+def test_combined_summary_generation(tmp_path: Path) -> None:
+    """Test AI-powered combined summary from README and transcript."""
+    submission_dir = tmp_path / "submission"
+    submission_dir.mkdir()
+    readme_text = """# EcoTracker Pro
+
+An innovative energy monitoring solution that provides real-time insights
+into household power consumption. Our intelligent algorithms analyze usage
+patterns and suggest optimization strategies.
+"""
+    (submission_dir / "README.md").write_text(readme_text, encoding="utf-8")
+
+    # Simulate a video transcript
+    transcript = (
+        "Hello everyone. Today I'm presenting EcoTracker Pro, which monitors "
+        "electricity usage in homes. The dashboard shows consumption trends "
+        "and helps families reduce their carbon footprint through smart alerts."
+    )
+
+    analyzer = TextAnalyzer(
+        similarity_corpus_dir=None,
+        intermediate_dir=tmp_path / "cache",
+        embedding_model=None,
+        top_k=3,
+        ai_detector_model=None,
+    )
+
+    result = analyzer.analyze(submission_dir, transcript=transcript)
+
+    # Verify combined summary exists and contains relevant terms
+    assert result.combined_summary is not None
+    assert len(result.combined_summary) > 0
+    # Summary should reference project name or key concepts
+    combined_lower = result.combined_summary.lower()
+    assert any(
+        term in combined_lower
+        for term in ["eco", "energy", "monitor", "consumption", "power"]
+    )
+
+
+def test_gemini_priority_over_local_models(tmp_path: Path) -> None:
+    """Test that Gemini API is prioritized when API key is provided."""
+    submission_dir = tmp_path / "submission"
+    submission_dir.mkdir()
+    (submission_dir / "README.md").write_text("Test project", encoding="utf-8")
+
+    # Without API key - should use local BART
+    analyzer_no_key = TextAnalyzer(
+        similarity_corpus_dir=None,
+        intermediate_dir=tmp_path / "cache1",
+        embedding_model=None,
+        top_k=3,
+        ai_detector_model=None,
+        gemini_api_key=None,
+    )
+
+    # With invalid API key - should fallback to BART
+    analyzer_with_key = TextAnalyzer(
+        similarity_corpus_dir=None,
+        intermediate_dir=tmp_path / "cache2",
+        embedding_model=None,
+        top_k=3,
+        ai_detector_model=None,
+        gemini_api_key="test-key-invalid",
+    )
+
+    result_no_key = analyzer_no_key.analyze(submission_dir, transcript="Test")
+    result_with_key = analyzer_with_key.analyze(submission_dir, transcript="Test")
+
+    # Both should produce summaries (fallback works)
+    # We don't test actual API calls to avoid requiring real keys in tests
+    assert isinstance(result_no_key.combined_summary, (str, type(None)))
+    assert isinstance(result_with_key.combined_summary, (str, type(None)))

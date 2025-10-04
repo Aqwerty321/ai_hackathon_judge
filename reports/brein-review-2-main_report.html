@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Hackathon Report: brein-review-2-main</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --accent: #2563eb;
+        --muted: #64748b;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 2rem 3rem 3rem;
+        background: #f8fafc;
+        color: #0f172a;
+        line-height: 1.6;
+      }
+
+      header {
+        border-bottom: 3px solid var(--accent);
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        border-left: 4px solid var(--accent);
+        padding-left: 0.75rem;
+        margin-top: 2.5rem;
+      }
+
+      h3 {
+        margin-top: 1.5rem;
+      }
+
+      .score {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        border: 1px solid #cbd5f5;
+        padding: 0.6rem 0.75rem;
+        text-align: left;
+      }
+
+      th {
+        background: #eff6ff;
+      }
+
+      .chips {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin: 0.75rem 0;
+      }
+
+      .chip {
+        background: #e0f2fe;
+        color: #0c4a6e;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+
+      blockquote {
+        background: #f1f5f9;
+        margin: 0.75rem 0;
+        padding: 1rem 1.25rem;
+        border-left: 4px solid var(--accent);
+        font-style: italic;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .chart {
+        margin: 1rem 0;
+        text-align: center;
+      }
+
+      .chart img {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      }
+
+      .chart-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: flex-start;
+        align-items: stretch;
+      }
+
+      .chart-row .chart {
+        flex: 1 1 280px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .badge-success {
+        background: #dcfce7;
+        color: #14532d;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .badge-danger {
+        background: #fee2e2;
+        color: #7f1d1d;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      footer {
+        margin-top: 3rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AI Hackathon Report: brein-review-2-main</h1>
+      <div class="score">Total score: 0.556</div>
+  <div class="muted">Analyzed directory: data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main</div>
+  <div class="muted">Original submission: data\submissions\brein-review-2-main.zip</div>
+      <div class="muted">Extraction root: data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d</div>
+    </header>
+
+    <section>
+      <h2>Criteria Breakdown</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>Weight</th>
+            <th>Raw</th>
+            <th>Normalized</th>
+            <th>Weighted</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Originality</td>
+            <td>30.0%</td>
+            <td>0.653</td>
+            <td>0.653</td>
+            <td>0.196</td>
+            <td>Measured from lexical uniqueness in the project description.</td>
+          </tr>
+          <tr>
+            <td>Technical Feasibility</td>
+            <td>25.0%</td>
+            <td>1.000</td>
+            <td>1.000</td>
+            <td>0.250</td>
+            <td>Log-scaled feasibility estimate derived from description word count.</td>
+          </tr>
+          <tr>
+            <td>Code Quality & Correctness</td>
+            <td>25.0%</td>
+            <td>0.013</td>
+            <td>0.013</td>
+            <td>0.003</td>
+            <td>Average of readability, documentation, and coverage heuristics.</td>
+          </tr>
+          <tr>
+            <td>Presentation Quality</td>
+            <td>20.0%</td>
+            <td>0.533</td>
+            <td>0.533</td>
+            <td>0.107</td>
+            <td>Clarity heuristics computed from the presentation transcript.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Video Insights</h2>
+      <div class="chart">
+        <img src="charts\brein-review-2-main\video_metrics.png" alt="Video metrics chart" />
+      </div>
+      <div class="grid grid-2">
+        <div>
+          <h3>Key Metrics</h3>
+          <p><strong>Clarity</strong>: 0.533</p>
+          <p><strong>Estimated duration</strong>: 90.0s</p>
+          <p><strong>Sentiment</strong>: negative (0.999)</p>
+          <p class="muted">Transcript source: readme_fallback</p>
+        </div>
+        <div>
+          <h3>Transcript excerpt</h3>
+          <blockquote># ASL to English Alphabet Translator - Review 1
+
+Seeing the lack of ASL to English Translators available online, we decided to start this project.
+Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we aim to first, effectively and accurately translate ASL to the English Alphabet.
+
+## Issues 
+i. Tracking dynamic hand gestures for alphabets like J and…</blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Text Insights</h2>
+      <div class="chart-row">
+        <div class="chart">
+          <img src="charts\brein-review-2-main\text_metrics.png" alt="Text metrics chart" />
+        </div>
+        <div class="chart">
+          <img src="charts\brein-review-2-main\scores.png" alt="Criteria scores chart" />
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div>
+          <h3>Summary</h3>
+          <p># ASL to English Alphabet Translator - Review 1 Seeing the lack of ASL to English Translators available online, we decided to start this project. Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we...</p>
+          <div class="chips">
+            <span class="chip">Originality: 0.653</span>
+            <span class="chip">Feasibility: 1.0</span>
+            <span class="chip">AI likelihood: 0.0</span>
+          </div>
+        </div>
+        <div>
+          <h3>Similarity matches</h3>
+          <p class="muted">No notable similarities detected.</p>
+        </div>
+      </div>
+
+      <h3>Flagged claims</h3>
+      <ul>
+        <li>
+          <p><strong># ASL to English Alphabet Translator - Review 1
+
+Seeing the lack of ASL to English Translators available online, we decided to start this project</strong></p>
+          <p class="muted">Reason: Contains quantifiable claim requiring verification</p>
+          <p><span class="badge-success">plausible</span> — The claim states that there is a lack of ASL to English Translators online and the team decided to create one. This is a factual statement based on their observation.</p>
+          <p><span class="badge-info">needs_review</span> — No clear supporting evidence found; manual review recommended.</p>
+          <ul>
+            <li>
+<strong>English Text to Indian Sign Language Translator</strong> <a href="https://www.cse.scu.edu/~m1wang/projects/NLP_English2IndianSignLanuguage_18w.pdf" target="_blank" rel="noopener">Source</a>              <blockquote>Our project aims at creating a translation system that consists of a parsing module which parses the input English sentence to phrase structure grammar.</blockquote>
+            </li>
+            <li>
+<strong>Evidence for Explicitation: Working from ASL into English</strong> <a href="https://digitalcommons.unf.edu/cgi/viewcontent.cgi?article=1147&context=joi" target="_blank" rel="noopener">Source</a>              <blockquote>by C McDermid · 2024 — This study examined how interpreters use expansion and compression strategies, and shifts in reference when working from ASL to English , going ...</blockquote>
+            </li>
+            <li>
+<strong>State of the Art of Automation in Sign Language</strong> <a href="https://dl.acm.org/doi/10.1145/3564769" target="_blank" rel="noopener">Source</a>              <blockquote>The automatic translation systems for sign language generation and sign language recognition are a potential solution for deaf people. Most of the sign language ...</blockquote>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p><strong>However, we assure you the mapping is accurate, so just try a few more times :)
+
+![image](https://github.com/IshaanKetchup/brein/assets/88713875/3a845ee0-0fa8-4131-aa69-f5e38fb6d2fd)
+
+Note: Gesture for 'F' in above image is different from the gesture we have mapped, try rotating your hand so that the circular portion faces the camera :p</strong></p>
+          <p class="muted">Reason: Contains quantifiable claim requiring verification</p>
+          <p><span class="badge-success">plausible</span> — The claim states that they assure the accuracy of their mapping, and the provided image shows a difference in gesture for 'F', suggesting that minor differences might be expected.</p>
+          <p><span class="badge-info">needs_review</span> — No clear supporting evidence found; manual review recommended.</p>
+          <ul>
+            <li>
+<strong>List of gestures - Wikipedia</strong> <a href="https://en.wikipedia.org/wiki/List_of_gestures" target="_blank" rel="noopener">Source</a>              <blockquote>Shrug with only one hand ( rotating of wrist and opening hand palm upward) is used to signal confusion or "what?" - can be accompanied by squinting of eyes, slightly open mouth, and slight rotating of head (as if to listen more with one ear).</blockquote>
+            </li>
+            <li>
+<strong>Look at the letters you got and guess the word. The riddle helps you ....</strong> <a href="https://www.euroki.org/koza/look-at-the-letters-you-got-and-guess-the-word-the-riddle-helps-you-s------lettersi-hang-above-i-neve" target="_blank" rel="noopener">Source</a>              <blockquote>The riddle helps you . S_(10 letters) I hang above , I never rest, I sprinkle water at your request. In the bathroom, I make a sound, A gentle rain that falls around.</blockquote>
+            </li>
+            <li>
+<strong>TrimUI Smart Pro Setup Guide - Retro Handheld Guides</strong> <a href="https://retrohandheldguides.com/trimui-smart-pro-setup-guide/" target="_blank" rel="noopener">Source</a>              <blockquote>Simply connect a USB-C to USB-A cable from the TrimUI Smart Pro to your computer. Next, with the device turn on, navigate to the App menu and select the USB Storage app.</blockquote>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Code Insights</h2>
+      <div class="chart">
+        <img src="charts\brein-review-2-main\code_metrics.png" alt="Code metrics chart" />
+      </div>
+      <div class="chips">
+        <span class="chip">Readability: 0.0</span>
+        <span class="chip">Documentation: 0.0</span>
+        <span class="chip">Test coverage est.: 0.04</span>
+      </div>
+
+      <div class="grid grid-2">
+        <div>
+          <h3>Lint summary</h3>
+          <p class="muted">No lint feedback available.</p>
+        </div>
+        <div>
+          <h3>Complexity snapshot</h3>
+          <p>Average complexity: 46.167</p>
+          <p>Normalized score: 0.0</p>
+          <ul>
+            <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\app.py — max 264.00, avg 46.17</li>
+            <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\templates\app.py — max 264.00, avg 46.17</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Documentation coverage</h3>
+      <p>Docstrings: 0 / 14 (ratio 0.0)</p>
+
+      <h3>Test results</h3>
+      <p>Status: skipped (exit )</p>
+    </section>
+
+    <footer>Generated automatically by the AI Hackathon Judge pipeline.</footer>
+  </body>
+</html>

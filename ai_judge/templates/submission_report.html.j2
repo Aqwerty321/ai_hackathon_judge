@@ -2,167 +2,447 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Hackathon Report: {{ submission_name }}</title>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       :root {
-        color-scheme: light dark;
-        --accent: #2563eb;
-        --muted: #64748b;
-        font-family: "Segoe UI", sans-serif;
+        --primary: #7c3aed;
+        --primary-dark: #5b21b6;
+        --primary-light: #a78bfa;
+        --accent: #c084fc;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --text: #e2e8f0;
+        --text-light: #94a3b8;
+        --bg: #0f0a1e;
+        --bg-elevated: #1a1432;
+        --surface: #241b3e;
+        --border: #3d2f5f;
+        --radius: 12px;
+        --shadow-sm: 0 1px 3px rgba(124, 58, 237, 0.15);
+        --shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+        --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.3);
       }
 
       body {
-        margin: 0;
-        padding: 2rem 3rem 3rem;
-        background: #f8fafc;
-        color: #0f172a;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        background: var(--bg);
+        color: var(--text);
         line-height: 1.6;
       }
 
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Header */
       header {
-        border-bottom: 3px solid var(--accent);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
         margin-bottom: 2rem;
-        padding-bottom: 1rem;
+        box-shadow: var(--shadow-lg);
       }
 
-      h1 {
-        margin: 0 0 0.5rem;
+      header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
       }
 
-      h2 {
-        border-left: 4px solid var(--accent);
-        padding-left: 0.75rem;
-        margin-top: 2.5rem;
-      }
-
-      h3 {
-        margin-top: 1.5rem;
-      }
-
-      .score {
+      .score-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1.25rem;
+        border-radius: 999px;
         font-size: 1.25rem;
         font-weight: 600;
+        margin: 0.5rem 0;
+      }
+
+      .meta {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .card h2 {
+        color: var(--primary);
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .card h3 {
+        font-size: 1.1rem;
+        margin: 1.25rem 0 0.75rem;
+        color: var(--text);
+      }
+
+      /* AI Highlight Box */
+      .ai-box {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .ai-box h3 {
+        color: var(--primary-light);
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .ai-content {
+        background: var(--bg-elevated);
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        white-space: pre-wrap;
+        line-height: 1.7;
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* Markdown content styling */
+      .markdown-content {
+        line-height: 1.7;
+      }
+
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3,
+      .markdown-content h4 {
+        color: var(--primary-light);
+        margin-top: 1.25rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .markdown-content p {
+        margin: 0.75rem 0;
+      }
+
+      .markdown-content ul,
+      .markdown-content ol {
+        margin: 0.75rem 0;
+        padding-left: 1.5rem;
+      }
+
+      .markdown-content li {
+        margin: 0.5rem 0;
+      }
+
+      .markdown-content code {
+        background: var(--bg-elevated);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+        font-family: 'Consolas', 'Monaco', monospace;
         color: var(--accent);
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        font-size: 0.95rem;
+      .markdown-content pre {
+        background: var(--bg-elevated);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
       }
 
-      th,
-      td {
-        border: 1px solid #cbd5f5;
-        padding: 0.6rem 0.75rem;
-        text-align: left;
+      .markdown-content pre code {
+        background: none;
+        padding: 0;
       }
 
-      th {
-        background: #eff6ff;
+      .markdown-content strong {
+        color: var(--primary-light);
+        font-weight: 600;
       }
 
-      .chips {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin: 0.75rem 0;
+      .markdown-content em {
+        color: var(--accent);
       }
 
-      .chip {
-        background: #e0f2fe;
-        color: #0c4a6e;
-        padding: 0.25rem 0.6rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-      }
-
-      blockquote {
-        background: #f1f5f9;
-        margin: 0.75rem 0;
-        padding: 1rem 1.25rem;
-        border-left: 4px solid var(--accent);
+      .markdown-content blockquote {
+        border-left: 3px solid var(--primary);
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: var(--text-light);
         font-style: italic;
       }
 
+      /* Grid Layouts */
       .grid {
         display: grid;
-        gap: 1.25rem;
-      }
-
-      .chart {
-        margin: 1rem 0;
-        text-align: center;
-      }
-
-      .chart img {
-        max-width: 100%;
-        border-radius: 8px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-      }
-
-      .chart-row {
-        display: flex;
-        flex-wrap: wrap;
         gap: 1.5rem;
-        justify-content: flex-start;
-        align-items: stretch;
-      }
-
-      .chart-row .chart {
-        flex: 1 1 280px;
       }
 
       .grid-2 {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       }
 
-      .muted {
-        color: var(--muted);
+      .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      /* Metrics */
+      .metrics {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+      }
+
+      .metric {
+        background: var(--bg-elevated);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .metric:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .metric-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-light);
+      }
+
+      /* Metrics container */
+      .metrics-container {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        margin: 1.5rem 0;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+
+      /* Table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
         font-size: 0.9rem;
       }
 
-      .badge-success {
-        background: #dcfce7;
-        color: #14532d;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
+      th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        background: var(--bg-elevated);
         font-weight: 600;
+        color: var(--primary-light);
+      }
+
+      tr:hover {
+        background: rgba(124, 58, 237, 0.1);
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
         font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-success {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
       }
 
       .badge-danger {
-        background: #fee2e2;
-        color: #7f1d1d;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
-        font-weight: 600;
-        font-size: 0.85rem;
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
       }
 
-      footer {
-        margin-top: 3rem;
+      .badge-warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+      }
+
+      .badge-info {
+        background: rgba(124, 58, 237, 0.2);
+        color: var(--primary-light);
+        border: 1px solid rgba(124, 58, 237, 0.4);
+      }
+
+      /* Blockquote */
+      blockquote {
+        background: var(--bg-elevated);
+        margin: 0.75rem 0;
+        padding: 1rem;
+        border-left: 4px solid var(--primary);
+        font-style: italic;
+        border-radius: 4px;
+        color: var(--text-light);
+      }
+
+      /* Charts */
+      .chart-container {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .chart {
+        flex: 1;
+        min-width: 300px;
+        max-width: 500px;
+      }
+
+      .chart img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      /* Lists */
+      ul {
+        margin: 0.75rem 0 0.75rem 1.5rem;
+      }
+
+      li {
+        margin: 0.5rem 0;
+      }
+
+      li strong {
+        color: var(--primary);
+      }
+
+      /* Code blocks */
+      pre {
+        background: var(--bg);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
         font-size: 0.85rem;
-        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      details {
+        margin: 1rem 0;
+      }
+
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+        padding: 0.5rem;
+        background: var(--bg);
+        border-radius: 6px;
+        user-select: none;
+      }
+
+      summary:hover {
+        background: var(--border);
+      }
+
+      /* Links */
+      a {
+        color: var(--primary-light);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+      }
+
+      /* Utilities */
+      .text-muted {
+        color: var(--text-light);
+      }
+
+      .text-sm {
+        font-size: 0.875rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        header h1 {
+          font-size: 1.5rem;
+        }
+
+        .grid-2, .grid-3 {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>AI Hackathon Report: {{ submission_name }}</h1>
-      <div class="score">Total score: {{ score_total }}</div>
-  <div class="muted">Analyzed directory: {{ submission_dir }}</div>
-  {% if submission_source %}
-  <div class="muted">Original submission: {{ submission_source }}</div>
-  {% endif %}
-      {% if extracted_root and normalized_from_extracted %}
-      <div class="muted">Extraction root: {{ extracted_root }}</div>
-      {% endif %}
-    </header>
+    <div class="container">
+      <header>
+        <h1>🏆 {{ submission_name }}</h1>
+        <div class="score-badge">Total Score: {{ score_total }}</div>
+        <div class="meta">📁 {{ submission_dir }}</div>
+        {% if submission_source %}
+        <div class="meta">📦 Source: {{ submission_source }}</div>
+        {% endif %}
+      </header>
 
-    <section>
-      <h2>Criteria Breakdown</h2>
+      <div class="card">
+        <h2>📊 Criteria Breakdown</h2>
       <table>
         <thead>
           <tr>
@@ -187,171 +467,234 @@
           {% endfor %}
         </tbody>
       </table>
-    </section>
+      </div>
 
-    <section>
-      <h2>Video Insights</h2>
-      {% if charts.video_metrics %}
-      <div class="chart">
-        <img src="{{ charts.video_metrics }}" alt="Video metrics chart" />
-      </div>
-      {% endif %}
-      <div class="grid grid-2">
-        <div>
-          <h3>Key Metrics</h3>
-          <p><strong>Clarity</strong>: {{ video.clarity_score | default(0) | round(3) }}</p>
-          <p><strong>Estimated duration</strong>: {{ video.estimated_duration_seconds | default(0) | round(1) }}s</p>
-          <p><strong>Sentiment</strong>: {{ video.sentiment_label | default('n/a') }} ({{ video.sentiment_score | default(0) | round(3) }})</p>
-          <p class="muted">Transcript source: {{ video.transcription_source | default('unknown') }}</p>
-        </div>
-        <div>
-          <h3>Transcript excerpt</h3>
-          <blockquote>{{ video_excerpt }}</blockquote>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Text Insights</h2>
-      <div class="chart-row">
-        {% if charts.text_metrics %}
-        <div class="chart">
-          <img src="{{ charts.text_metrics }}" alt="Text metrics chart" />
-        </div>
-        {% endif %}
-        {% if charts.scores %}
-        <div class="chart">
-          <img src="{{ charts.scores }}" alt="Criteria scores chart" />
-        </div>
-        {% endif %}
-      </div>
-      <div class="grid grid-2">
-        <div>
-          <h3>Summary</h3>
-          <p>{{ text.summary or 'No summary available.' }}</p>
-          <div class="chips">
-            <span class="chip">Originality: {{ text.originality_score | default(0) | round(3) }}</span>
-            <span class="chip">Feasibility: {{ text.feasibility_score | default(0) | round(3) }}</span>
-            <span class="chip">AI likelihood: {{ text.ai_generated_likelihood | default(0) | round(3) }}</span>
+      <div class="card">
+        <h2>🎥 Video Analysis</h2>
+        <div class="metrics-container">
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Clarity Score</div>
+              <div class="metric-value">{{ video.clarity_score | default(0) | round(3) }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Duration</div>
+              <div class="metric-value">{{ video.estimated_duration_seconds | default(0) | round(1) }}s</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Sentiment</div>
+              <div class="metric-value">{{ video.sentiment_label | default('n/a') }}</div>
+            </div>
           </div>
         </div>
-        <div>
-          <h3>Similarity matches</h3>
-          {% if top_matches %}
-          <ul>
-            {% for match in top_matches %}
-            <li>
-              <strong>{{ match.source }}</strong> — similarity {{ '%0.3f' % match.score }}
-              <blockquote>{{ match.snippet }}</blockquote>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="muted">No notable similarities detected.</p>
-          {% endif %}
+        
+        {% if charts.video_metrics %}
+        <div class="chart-container">
+          <div class="chart">
+            <img src="{{ charts.video_metrics }}" alt="Video metrics" />
+          </div>
         </div>
+        {% endif %}
+
+        <h3>Transcript Excerpt</h3>
+        <blockquote>{{ video_excerpt }}</blockquote>
+        <p class="text-muted text-sm">Source: {{ video.transcription_source | default('unknown') }}</p>
       </div>
 
-      <h3>Flagged claims</h3>
-      {% if claims %}
-      <ul>
-        {% for claim in claims %}
-        <li>
-          <p><strong>{{ claim.statement }}</strong></p>
-          <p class="muted">Reason: {{ claim.reason }}</p>
-          {% if claim.llm_verdict %}
-          <p><span class="badge-{{ 'success' if claim.llm_verdict == 'plausible' else 'danger' }}">{{ claim.llm_verdict }}</span> — {{ claim.llm_rationale }}</p>
+      <div class="card">
+        <h2>📝 Text Analysis</h2>
+        
+        {% if text.combined_summary %}
+        <div class="ai-box">
+          <h3>🤖 AI-Powered Summary</h3>
+          <div class="ai-content">{{ text.combined_summary }}</div>
+        </div>
+        {% endif %}
+
+        <div class="chart-container">
+          {% if charts.text_metrics %}
+          <div class="chart">
+            <img src="{{ charts.text_metrics }}" alt="Text metrics" />
+          </div>
           {% endif %}
-          {% if claim.verification_result %}
-          <p><span class="badge-{{ 'success' if claim.verification_result.status == 'verified' else ('danger' if claim.verification_result.status == 'contradicted' else 'info') }}">{{ claim.verification_result.status | default('unknown') }}</span> — {{ claim.verification_result.note | default('No verification note available.') }}</p>
-          {% if claim.verification_result.evidence %}
-          <ul>
-            {% for item in claim.verification_result.evidence %}
-            <li>
-              {% if item.title %}<strong>{{ item.title }}</strong>{% endif %}
-              {% if item.url %} <a href="{{ item.url }}" target="_blank" rel="noopener">Source</a>{% endif %}
-              {% if item.snippet %}
-              <blockquote>{{ item.snippet }}</blockquote>
+          {% if charts.scores %}
+          <div class="chart">
+            <img src="{{ charts.scores }}" alt="Scores" />
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Originality</div>
+            <div class="metric-value">{{ text.originality_score | default(0) | round(3) }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Feasibility</div>
+            <div class="metric-value">{{ text.feasibility_score | default(0) | round(3) }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">AI Likelihood</div>
+            <div class="metric-value">{{ text.ai_generated_likelihood | default(0) | round(3) }}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div>
+            <h3>Project Description</h3>
+            <p>{{ text.summary or 'No summary available.' }}</p>
+          </div>
+          <div>
+            <h3>Similarity Matches</h3>
+            {% if top_matches %}
+            <ul>
+              {% for match in top_matches %}
+              <li>
+                <strong>{{ match.source }}</strong> ({{ '%0.3f' % match.score }})
+                <blockquote>{{ match.snippet }}</blockquote>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">✓ No notable similarities detected</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <h3>Flagged Claims</h3>
+        <div class="card">
+          {% if claims %}
+          <div class="grid">
+            {% for claim in claims %}
+            <div class="card">
+              <p><strong>{{ claim.statement }}</strong></p>
+              <p class="text-muted">Reason: {{ claim.reason }}</p>
+              {% if claim.llm_verdict %}
+              <div class="ai-box" style="margin-top: 0.5rem; padding: 0.75rem;">
+                <span class="badge badge-{{ 'success' if claim.llm_verdict == 'plausible' else 'danger' }}">{{ claim.llm_verdict }}</span>
+                <p style="margin: 0.5rem 0 0 0;">{{ claim.llm_rationale }}</p>
+              </div>
               {% endif %}
-            </li>
+              {% if claim.verification_result %}
+              <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
+                <span class="badge badge-{{ 'success' if claim.verification_result.status == 'verified' else ('danger' if claim.verification_result.status == 'contradicted' else 'info') }}">{{ claim.verification_result.status | default('unknown') }}</span>
+                <p style="margin: 0.5rem 0 0 0;">{{ claim.verification_result.note | default('No verification note available.') }}</p>
+                {% if claim.verification_result.evidence %}
+                <ul style="margin-top: 0.5rem;">
+                  {% for item in claim.verification_result.evidence %}
+                  <li>
+                    {% if item.title %}<strong>{{ item.title }}</strong>{% endif %}
+                    {% if item.url %} <a href="{{ item.url }}" target="_blank" rel="noopener">Source</a>{% endif %}
+                    {% if item.snippet %}
+                    <blockquote style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;">{{ item.snippet }}</blockquote>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
             {% endfor %}
-          </ul>
+          </div>
+          {% else %}
+          <p class="text-muted">✓ No risky claims detected.</p>
           {% endif %}
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="muted">No risky claims detected.</p>
-      {% endif %}
+        </div>
     </section>
 
     <section>
       <h2>Code Insights</h2>
-      {% if charts.code_metrics %}
-      <div class="chart">
-        <img src="{{ charts.code_metrics }}" alt="Code metrics chart" />
-      </div>
-      {% endif %}
-      <div class="chips">
-        <span class="chip">Readability: {{ code.readability_score | default(0) | round(3) }}</span>
-        <span class="chip">Documentation: {{ code.documentation_score | default(0) | round(3) }}</span>
-        <span class="chip">Test coverage est.: {{ code.test_coverage_score_estimate | default(0) | round(3) }}</span>
-      </div>
-
-      <div class="grid grid-2">
-        <div>
-          <h3>Lint summary</h3>
-          {% if lint_messages %}
-          <ul>
-            {% for msg in lint_messages %}
-            <li><strong>{{ msg.symbol }}</strong> ({{ msg.path }}:{{ msg.line }}): {{ msg.message }}</li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="muted">No lint feedback available.</p>
-          {% endif %}
+      <div class="card">
+        {% if charts.code_metrics %}
+        <div class="chart-container">
+          <img src="{{ charts.code_metrics }}" alt="Code metrics chart" />
         </div>
-        <div>
-          <h3>Complexity snapshot</h3>
-          {% if complexity %}
-          <p>Average complexity: {{ complexity.average_complexity | default(0) | round(3) }}</p>
-          <p>Normalized score: {{ complexity.normalized_score | default(0) | round(3) }}</p>
-          {% if complexity.files %}
-          <ul>
-            {% for item in complexity.files[:3] %}
-            <li>{{ item.path }} — max {{ '%0.2f' % item.max_complexity }}, avg {{ '%0.2f' % item.average_complexity }}</li>
-            {% endfor %}
-          </ul>
-          {% endif %}
-          {% else %}
-          <p class="muted">Complexity data unavailable.</p>
-          {% endif %}
+        {% endif %}
+        
+        <div class="metrics-container">
+          <div class="grid grid-3">
+            <div class="metric">
+              <div class="metric-label">Readability</div>
+              <div class="metric-value">{{ code.readability_score | default(0) | round(3) }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Documentation</div>
+              <div class="metric-value">{{ code.documentation_score | default(0) | round(3) }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Test Coverage Est.</div>
+              <div class="metric-value">{{ code.test_coverage_score_estimate | default(0) | round(3) }}</div>
+            </div>
+          </div>
+        </div>
+
+        {% if gemini_insights %}
+        <div class="ai-box">
+          <h3>🤖 AI Code Insights (Powered by Gemini)</h3>
+          <div class="markdown-content">{{ gemini_insights.analysis | markdown | safe }}</div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Lint Summary</h3>
+            {% if lint_messages %}
+            <ul>
+              {% for msg in lint_messages %}
+              <li><strong>{{ msg.symbol }}</strong> ({{ msg.path }}:{{ msg.line }}): {{ msg.message }}</li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">✅ No linting issues detected or linting not available for this project type.</p>
+            {% endif %}
+          </div>
+          <div class="card">
+            <h3>Complexity Snapshot</h3>
+            {% if complexity %}
+            <p><strong>Average:</strong> {{ complexity.average_complexity | default(0) | round(3) }}</p>
+            <p><strong>Normalized Score:</strong> {{ complexity.normalized_score | default(0) | round(3) }}</p>
+            {% if complexity.files %}
+            <ul>
+              {% for item in complexity.files[:3] %}
+              <li>{{ item.path }} — max {{ '%0.2f' % item.max_complexity }}, avg {{ '%0.2f' % item.average_complexity }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% else %}
+            <p class="text-muted">Complexity data unavailable.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Documentation Coverage</h3>
+            {% if documentation %}
+            <p><strong>Docstrings:</strong> {{ documentation.docstrings }} / {{ documentation.objects }} (ratio {{ documentation.ratio | default(0) | round(3) }})</p>
+            {% if documentation.errors %}
+            <p class="text-muted">Errors: {{ documentation.errors | join(', ') }}</p>
+            {% endif %}
+            {% else %}
+            <p class="text-muted">No documentation metrics recorded.</p>
+            {% endif %}
+          </div>
+          <div class="card">
+            <h3>Test Results</h3>
+            {% if pytest_details %}
+            <p><strong>Status:</strong> {{ pytest_details.status }} (exit {{ pytest_details.returncode }})</p>
+            {% if pytest_details.output %}
+            <details>
+              <summary>Pytest output</summary>
+              <pre>{{ pytest_details.output }}</pre>
+            </details>
+            {% endif %}
+            {% else %}
+            <p class="text-muted">Pytest not executed.</p>
+            {% endif %}
+          </div>
         </div>
       </div>
-
-      <h3>Documentation coverage</h3>
-      {% if documentation %}
-      <p>Docstrings: {{ documentation.docstrings }} / {{ documentation.objects }} (ratio {{ documentation.ratio | default(0) | round(3) }})</p>
-      {% if documentation.errors %}
-      <p class="muted">Errors: {{ documentation.errors | join(', ') }}</p>
-      {% endif %}
-      {% else %}
-      <p class="muted">No documentation metrics recorded.</p>
-      {% endif %}
-
-      <h3>Test results</h3>
-      {% if pytest_details %}
-      <p>Status: {{ pytest_details.status }} (exit {{ pytest_details.returncode }})</p>
-      {% if pytest_details.output %}
-      <details>
-        <summary>Pytest output</summary>
-        <pre>{{ pytest_details.output }}</pre>
-      </details>
-      {% endif %}
-      {% else %}
-      <p class="muted">Pytest not executed.</p>
-      {% endif %}
     </section>
 
     <footer>Generated automatically by the AI Hackathon Judge pipeline.</footer>

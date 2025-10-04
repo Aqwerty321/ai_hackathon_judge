@@ -23,6 +23,11 @@ try:  # pragma: no cover - optional dependency during tests
 except ImportError:  # pragma: no cover
     cc_visit = None  # type: ignore
 
+try:  # pragma: no cover - optional dependency
+    import google.generativeai as genai
+except ImportError:  # pragma: no cover
+    genai = None  # type: ignore
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +73,7 @@ class CodeAnalysisResult:
 
 
 class CodeAnalyzer:
-    """Heuristic estimation of code quality signals."""
+    """Heuristic estimation of code quality signals for all programming languages."""
 
     _SKIP_DIR_NAMES = {
         "__pycache__",
@@ -82,27 +87,86 @@ class CodeAnalyzer:
         "dist",
         ".pytest_cache",
         ".mypy_cache",
+        "target",  # Maven/Gradle
+        "bin",
+        "obj",  # .NET
     }
+
+    # Language extensions mapping
+    _LANGUAGE_EXTENSIONS = {
+        ".py": "Python",
+        ".java": "Java",
+        ".js": "JavaScript",
+        ".ts": "TypeScript",
+        ".jsx": "React JSX",
+        ".tsx": "React TSX",
+        ".cpp": "C++",
+        ".c": "C",
+        ".h": "C/C++ Header",
+        ".hpp": "C++ Header",
+        ".cs": "C#",
+        ".go": "Go",
+        ".rs": "Rust",
+        ".rb": "Ruby",
+        ".php": "PHP",
+        ".swift": "Swift",
+        ".kt": "Kotlin",
+        ".scala": "Scala",
+        ".r": "R",
+        ".m": "Objective-C",
+        ".dart": "Dart",
+        ".lua": "Lua",
+        ".pl": "Perl",
+        ".sh": "Shell Script",
+        ".sql": "SQL",
+        ".html": "HTML",
+        ".css": "CSS",
+        ".scss": "SCSS",
+        ".vue": "Vue",
+        ".json": "JSON",
+        ".yaml": "YAML",
+        ".yml": "YAML",
+        ".xml": "XML",
+        ".md": "Markdown",
+    }
+
+    def __init__(self, gemini_api_key: str | None = None, gemini_model: str = "models/gemini-2.0-flash-lite"):
+        """Initialize code analyzer with optional Gemini AI support for all languages."""
+        self._gemini_api_key = gemini_api_key
+        self._gemini_model = gemini_model
+        self._gemini_client = None
 
     def analyze(self, submission_dir: Path) -> CodeAnalysisResult:
         code_dir = submission_dir / "code"
+        
+        # Detect all code files (any language)
+        code_files = []
         python_files = []
+        
         if code_dir.exists():
-            python_files = list(self._iter_python_files(code_dir))
+            code_files = list(self._iter_code_files(code_dir))
+            python_files = [f for f in code_files if f.suffix == ".py"]
 
         discovered_dir: Optional[Path] = None
-        if not python_files:
+        if not code_files:
             discovered_dir = self._discover_code_directory(submission_dir)
             if discovered_dir is not None:
                 code_dir = discovered_dir
-                python_files = list(self._iter_python_files(code_dir))
+                code_files = list(self._iter_code_files(code_dir))
+                python_files = [f for f in code_files if f.suffix == ".py"]
 
-        if not python_files:
+        if not code_files:
             return CodeAnalysisResult(0.0, 0.0, 0.0)
+        
+        # Analyze language distribution
+        language_stats = self._analyze_languages(code_files)
 
         readability_signals: List[float] = []
         details: Dict[str, Any] = {
-            "evaluated_files": [str(path.relative_to(code_dir)) for path in python_files],
+            "total_files": len(code_files),
+            "languages": language_stats,
+            "evaluated_files": [str(path.relative_to(code_dir)) for path in code_files[:20]],  # Show first 20
+            "python_files_count": len(python_files),
         }
         try:
             rel_code_root = code_dir.relative_to(submission_dir)
@@ -112,38 +176,67 @@ class CodeAnalyzer:
         if discovered_dir is not None:
             details["discovered_code_root"] = True
 
-        lint_score, lint_details = self._run_pylint(code_dir, python_files)
+        # Run Python-specific analysis if Python files exist
+        lint_score, lint_details = self._run_pylint(code_dir, python_files) if python_files else (None, {"status": "skipped", "reason": "No Python files"})
         if lint_score is not None:
             readability_signals.append(lint_score)
         details["lint"] = lint_details
 
-        complexity_score, complexity_details = self._compute_complexity(python_files)
+        complexity_score, complexity_details = self._compute_complexity(python_files) if python_files else (None, {"status": "skipped", "reason": "No Python files"})
         if complexity_score is not None:
             readability_signals.append(complexity_score)
         details["complexity"] = complexity_details
 
-        doc_ratio, doc_details = self._docstring_ratio(python_files)
+        doc_ratio, doc_details = self._docstring_ratio(python_files) if python_files else (0.0, {"status": "skipped", "reason": "No Python files"})
         details["documentation"] = doc_details
 
-        pytest_score, pytest_details = self._run_pytest(code_dir)
+        pytest_score, pytest_details = self._run_pytest(code_dir) if python_files else (None, {"status": "skipped", "reason": "No Python files"})
         details["pytest"] = pytest_details
 
+        # Calculate readability based on available signals
         if readability_signals:
             readability = sum(readability_signals) / len(readability_signals)
+            # Boost readability for multi-language projects with decent organization
+            if not python_files or len(language_stats.get("languages", [])) > 1:
+                # Add baseline for organized multi-language projects
+                readability = max(readability, 0.4 + min(0.4, len(code_files) / 25))
         else:
-            readability = 0.3 + min(0.7, len(python_files) / 20)
+            # Estimate based on file count and structure
+            readability = 0.3 + min(0.7, len(code_files) / 30)
 
+        # Calculate documentation score
         documentation = doc_ratio
         if documentation == 0.0:
-            docstrings = doc_details.get("docstrings", 0)
-            max_possible = max(1, len(python_files) * 2)
-            documentation = min(1.0, docstrings / max_possible)
+            if python_files:
+                # For Python projects with no docstrings, check if there's a README or comments
+                has_readme = any(f.name.lower() == "readme.md" for f in code_files)
+                docstrings = doc_details.get("docstrings", 0)
+                max_possible = max(1, len(python_files) * 2)
+                documentation = min(1.0, docstrings / max_possible)
+                # Small boost for having a README
+                if has_readme and documentation < 0.3:
+                    documentation = 0.3
+            else:
+                # Estimate for non-Python projects based on file organization and README
+                has_readme = any(f.name.lower() == "readme.md" for f in code_files)
+                documentation = (0.5 if has_readme else 0.35) if len(code_files) > 5 else 0.25
 
         if pytest_score is not None:
             coverage_estimate = pytest_score
         else:
-            docstrings = doc_details.get("docstrings", 0)
-            coverage_estimate = min(1.0, (len(python_files) + docstrings) / 50)
+            if python_files:
+                docstrings = doc_details.get("docstrings", 0)
+                coverage_estimate = min(1.0, (len(python_files) + docstrings) / 50)
+            else:
+                # Estimate for non-Python projects
+                coverage_estimate = 0.3 if len(code_files) > 10 else 0.2
+
+        # Generate Gemini-powered code insights for ALL languages
+        gemini_insights = self._generate_code_insights_with_gemini(
+            code_files, python_files, language_stats, lint_details, complexity_details, doc_details
+        )
+        if gemini_insights:
+            details["gemini_insights"] = gemini_insights
 
         return CodeAnalysisResult(
             readability_score=round(readability, 3),
@@ -158,17 +251,68 @@ class CodeAnalyzer:
                 continue
             yield path
 
+    def _iter_code_files(self, root: Path) -> Iterable[Path]:
+        """Iterate over all recognized code files in any language."""
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            if any(part in self._SKIP_DIR_NAMES for part in path.parts):
+                continue
+            # Check if it's a recognized code file
+            if path.suffix in self._LANGUAGE_EXTENSIONS:
+                yield path
+
+    def _analyze_languages(self, code_files: List[Path]) -> Dict[str, Any]:
+        """Analyze language distribution in the codebase."""
+        language_counts: Dict[str, int] = {}
+        language_lines: Dict[str, int] = {}
+        
+        for file_path in code_files:
+            lang = self._LANGUAGE_EXTENSIONS.get(file_path.suffix, "Other")
+            language_counts[lang] = language_counts.get(lang, 0) + 1
+            
+            # Try to count lines for better analysis
+            try:
+                lines = len(file_path.read_text(encoding='utf-8', errors='ignore').splitlines())
+                language_lines[lang] = language_lines.get(lang, 0) + lines
+            except Exception:
+                pass
+        
+        # Calculate percentages
+        total_files = len(code_files)
+        total_lines = sum(language_lines.values()) if language_lines else 0
+        
+        language_info = []
+        for lang in sorted(language_counts.keys(), key=lambda x: language_counts[x], reverse=True):
+            info = {
+                "language": lang,
+                "file_count": language_counts[lang],
+                "file_percentage": round(100 * language_counts[lang] / total_files, 1) if total_files > 0 else 0,
+            }
+            if lang in language_lines and total_lines > 0:
+                info["line_count"] = language_lines[lang]
+                info["line_percentage"] = round(100 * language_lines[lang] / total_lines, 1)
+            language_info.append(info)
+        
+        return {
+            "total_files": total_files,
+            "total_lines": total_lines,
+            "languages": language_info,
+            "primary_language": language_info[0]["language"] if language_info else "Unknown",
+        }
+
     def _discover_code_directory(self, submission_dir: Path) -> Optional[Path]:
-        python_files = [path for path in self._iter_python_files(submission_dir)]
-        if not python_files:
+        # Use all code files, not just Python
+        code_files = [path for path in self._iter_code_files(submission_dir)]
+        if not code_files:
             return None
 
-        top_level = [path for path in python_files if path.parent == submission_dir]
+        top_level = [path for path in code_files if path.parent == submission_dir]
         if top_level:
             return submission_dir
 
         scores: Dict[Path, int] = {}
-        for file_path in python_files:
+        for file_path in code_files:
             parent = file_path.parent
             while parent != submission_dir and parent.is_relative_to(submission_dir):
                 try:
@@ -372,3 +516,127 @@ class CodeAnalyzer:
             yield
         finally:
             os.chdir(current)
+
+    def _generate_code_insights_with_gemini(
+        self,
+        code_files: List[Path],
+        python_files: List[Path],
+        language_stats: Dict[str, Any],
+        lint_details: Mapping[str, Any],
+        complexity_details: Mapping[str, Any],
+        doc_details: Mapping[str, Any]
+    ) -> Dict[str, Any] | None:
+        """Generate AI-powered code insights and suggestions using Gemini for ALL languages."""
+        if not self._gemini_api_key or not genai:
+            return None
+
+        try:
+            # Initialize Gemini client if needed
+            if self._gemini_client is None:
+                genai.configure(api_key=self._gemini_api_key)
+                self._gemini_client = genai.GenerativeModel(self._gemini_model)
+
+            # Prepare language distribution
+            primary_language = language_stats.get("primary_language", "Unknown")
+            total_files = language_stats.get("total_files", 0)
+            total_lines = language_stats.get("total_lines", 0)
+            languages_list = language_stats.get("languages", [])
+            
+            # Build language breakdown
+            lang_breakdown = "\n".join([
+                f"- {lang['language']}: {lang['file_count']} files ({lang['file_percentage']}%)" +
+                (f", {lang.get('line_count', 0)} lines ({lang.get('line_percentage', 0)}%)" if 'line_count' in lang else "")
+                for lang in languages_list[:5]  # Top 5 languages
+            ])
+            
+            # Prepare Python-specific metrics if available
+            lint_messages = lint_details.get("messages", [])[:10]
+            lint_status = lint_details.get("status", "unknown")
+            lint_score = lint_details.get("normalized_score")
+            
+            complexity_score = complexity_details.get("normalized_score")
+            avg_complexity = complexity_details.get("average_complexity")
+            
+            doc_ratio = doc_details.get("ratio", 0.0)
+            total_functions = doc_details.get("total_functions", 0)
+            
+            # Build context for Gemini
+            context = f"""Multi-Language Code Quality Analysis:
+
+Primary Language: {primary_language}
+Total Files: {total_files}
+Total Lines: {total_lines:,} (estimated)
+
+Language Breakdown:
+{lang_breakdown}
+
+"""
+
+            # Add Python-specific metrics if available
+            if python_files:
+                context += f"""
+Python-Specific Analysis:
+Files Analyzed: {len(python_files)} Python files
+
+Linting Status: {lint_status}
+{f"Lint Score: {lint_score:.3f}/1.0" if lint_score is not None else "Lint Score: N/A"}
+
+Complexity Score: {f"{complexity_score:.3f}/1.0" if complexity_score else "N/A"}
+{f"Average Complexity: {avg_complexity:.2f}" if avg_complexity else ""}
+
+Documentation Ratio: {doc_ratio:.3f}
+Total Functions: {total_functions}
+
+"""
+
+            # Add lint messages if available
+            if lint_messages:
+                context += "Top Linting Issues (Python):\n"
+                for msg in lint_messages:
+                    context += f"- [{msg.get('symbol')}] {msg.get('path')}:{msg.get('line')} - {msg.get('message')}\n"
+            elif python_files:
+                context += "Linting Issues: None detected\n"
+            
+            context += "\n"
+
+            prompt = f"""{context}
+
+Based on this multi-language code analysis, provide:
+1. **Overall Assessment** (2-3 sentences): Summarize the code quality, language choices, and what stands out
+2. **Strengths** (2-3 bullet points): What the codebase does well (consider all languages)
+3. **Improvement Suggestions** (3-4 actionable bullet points): Specific recommendations for the primary language ({primary_language}) and overall project structure
+4. **Priority Fix** (if issues exist): The most important improvement to make first
+
+Be concise, specific, and constructive. Tailor advice to the {primary_language} ecosystem and best practices."""
+
+            response = self._gemini_client.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.5,  # Balanced for code analysis
+                    "top_p": 0.9,
+                    "top_k": 40,
+                    "max_output_tokens": 600,
+                },
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            )
+
+            if response and hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                    if candidate.content.parts:
+                        insights_text = candidate.content.parts[0].text.strip()
+                        LOGGER.info("Generated Gemini code insights (%d chars)", len(insights_text))
+                        return {
+                            "analysis": insights_text,
+                            "generated_by": self._gemini_model
+                        }
+
+        except Exception as exc:
+            LOGGER.warning("Gemini code insights generation failed: %s", exc)
+
+        return None

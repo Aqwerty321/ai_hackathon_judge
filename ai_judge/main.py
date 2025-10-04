@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 import argparse
 import shutil
@@ -212,15 +213,15 @@ def run_pipeline(
         embedding_model=config.text_embedding_model,
         top_k=config.text_similarity_top_k,
         ai_detector_model=config.text_ai_detector_model,
-        llm_model_path=config.resolved_text_llm_model_path,
-        llm_model_type=config.text_llm_model_type,
-        llm_max_tokens=config.text_llm_max_tokens,
         device_spec=device_spec,
-        llm_context_length=config.text_llm_context_length,
-        llm_gpu_layers=config.text_llm_gpu_layers,
         ai_detector_context_length=config.text_ai_detector_context_length,
+        gemini_api_key=config.gemini_api_key,
+        gemini_model=config.gemini_model,
     )
-    code_analyzer = CodeAnalyzer()
+    code_analyzer = CodeAnalyzer(
+        gemini_api_key=config.gemini_api_key,
+        gemini_model=config.gemini_model,
+    )
     scorer = Scorer(judging_criteria)
     cache = AnalysisCache(config.analysis_cache_dir)
 
@@ -305,7 +306,7 @@ def run_pipeline(
         )
         text_result = _run_stage(
             "text",
-            lambda: text_analyzer.analyze(submission_dir),
+            lambda: text_analyzer.analyze(submission_dir, video_result.transcript),
             lambda res: res.to_dict(),
             lambda data: TextAnalysisResult.from_dict(data),
         )
@@ -397,19 +398,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--device",
         dest="device",
-        help="Preferred compute device (auto, cpu, cuda, cuda:<index>, mps).",
-    )
-    parser.add_argument(
-        "--llm-context",
-        dest="llm_context",
-        type=int,
-        help="Override the local LLM context length (tokens).",
-    )
-    parser.add_argument(
-        "--llm-gpu-layers",
-        dest="llm_gpu_layers",
-        type=int,
-        help="Number of layers to offload to GPU when using local LLMs.",
+        help="Preferred compute device (auto, cpu, cuda, cuda:<index>, mps) for local models.",
     )
     parser.add_argument(
         "--ai-detector-context",
@@ -429,6 +418,17 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Remove cached results for the targeted submissions before running.",
     )
+    parser.add_argument(
+        "--gemini-api-key",
+        dest="gemini_api_key",
+        help="Google Gemini Pro API key for AI-powered summaries (highest priority).",
+    )
+    parser.add_argument(
+        "--gemini-model",
+        dest="gemini_model",
+        default="models/gemini-2.0-flash-lite",
+        help="Gemini model to use (default: models/gemini-2.0-flash-lite for best free tier compatibility). Use check_gemini_models.py to see all available models.",
+    )
     return parser.parse_args()
 
 
@@ -437,12 +437,16 @@ def _build_config(args: argparse.Namespace) -> Config:
     config_kwargs: Dict[str, Any] = {"base_dir": base_dir}
     if getattr(args, "device", None):
         config_kwargs["device_preference"] = args.device
-    if getattr(args, "llm_context", None):
-        config_kwargs["text_llm_context_length"] = max(512, int(args.llm_context))
-    if getattr(args, "llm_gpu_layers", None) is not None:
-        config_kwargs["text_llm_gpu_layers"] = int(args.llm_gpu_layers)
     if getattr(args, "ai_detector_context", None):
         config_kwargs["text_ai_detector_context_length"] = max(512, int(args.ai_detector_context))
+    
+    # Gemini API key: prioritize CLI arg, then env var
+    gemini_api_key = getattr(args, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY")
+    if gemini_api_key:
+        config_kwargs["gemini_api_key"] = gemini_api_key
+    
+    if getattr(args, "gemini_model", None):
+        config_kwargs["gemini_model"] = args.gemini_model
     return Config(**config_kwargs)
 
 

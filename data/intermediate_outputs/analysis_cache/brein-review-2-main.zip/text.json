@@ -1,0 +1,112 @@
+{
+  "fingerprint": "a76e17cd1a6889c80b073261d7d3459acdc198ce",
+  "payload": {
+    "originality_score": 0.653,
+    "feasibility_score": 1.0,
+    "summary": "# ASL to English Alphabet Translator - Review 1 Seeing the lack of ASL to English Translators available online, we decided to start this project. Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we...",
+    "similarity_matches": [],
+    "suspect_claims": [
+      {
+        "statement": "effectively and accurately translate ASL to the English Alphabet.",
+        "reason": "\"Effectively and accurately\" are subjective and lack quantifiable evidence.",
+        "llm_verdict": "needs_verification",
+        "llm_rationale": "The project description states the translation is \"a little buggy and incomplete,\" so accuracy needs to be verified.",
+        "verification_result": {
+          "status": "needs_review",
+          "note": "No clear supporting evidence found; manual review recommended.",
+          "evidence": [
+            {
+              "title": "Bi-Directional American Sign Language and English ...",
+              "url": "https://www.ijraset.com/research-paper/bi-directional-american-sign-language-and-english-translator-using-machine-learning",
+              "snippet": "23 Aug 2023 — Wecapable.com has developed a website based translator that converts English to ASL in a one way conversion manner. Wecapable allows for ..."
+            },
+            {
+              "title": "Automatic Identification of the American Sign Language ...",
+              "url": "https://ieeexplore.ieee.org/document/10968373/",
+              "snippet": "by RK Kodali · 2025 — This research uses machine learning to develop an effective algorithm for identifying the alphabet in American Sign Language ( ASL ) through natural hand ..."
+            },
+            {
+              "title": "Signapse | AI Sign Language Translator | Translate ASL & BSL",
+              "url": "https://signapse.ai/",
+              "snippet": "Translate videos, events, signage and announcements into BSL or ASL. Powered by AI and approved by real Deaf translators."
+            }
+          ]
+        },
+        "verification_status": "needs_review",
+        "verification_evidence": [
+          "23 Aug 2023 — Wecapable.com has developed a website based translator that converts English to ASL in a one way conversion manner. Wecapable allows for ...",
+          "by RK Kodali · 2025 — This research uses machine learning to develop an effective algorithm for identifying the alphabet in American Sign Language ( ASL ) through natural hand ...",
+          "Translate videos, events, signage and announcements into BSL or ASL. Powered by AI and approved by real Deaf translators."
+        ]
+      },
+      {
+        "statement": "Each gesture has been mapped accurately",
+        "reason": "Makes an absolute claim of accuracy without providing supporting data or metrics.",
+        "llm_verdict": "needs_verification",
+        "llm_rationale": "The claim of accurate mapping is contradicted by the project's own admission of bugs and sensitivity to minor gesture variations.",
+        "verification_result": {
+          "status": "verified",
+          "note": "Found 2 supporting source(s).",
+          "evidence": [
+            {
+              "title": "Wikipedia List of gestures - Wikipedia",
+              "url": "https://en.wikipedia.org/wiki/List_of_gestures",
+              "snippet": "2 days ago - In modern culture as bunny ears \"the actual symbolism has been forgotten and only the offence remains\". Dap greeting is a fist-to-fist handshake popularized in Western cultures since the 1970s, related to the fist bump. Dismissive hand wave: this is gesture in which a person waves their hand ..."
+            },
+            {
+              "title": "Wikipedia Gesture recognition - Wikipedia",
+              "url": "https://en.wikipedia.org/wiki/Gesture_recognition",
+              "snippet": "April 22, 2025 - Based on the relative motion of these, the gesture can be detected with high accuracy, depending on the quality of the input and the algorithm's approach. In order to interpret movements of the body, one has to classify them according to common properties and the message the movements may express. For example, in sign language, each ..."
+            },
+            {
+              "title": "Atlantis-Press Verification of a Combination of Gestures Accurately Recognized by Myo using Learning Curves | Atlantis Press",
+              "url": "https://www.atlantis-press.com/journals/jrnal/125940593/view",
+              "snippet": "May 20, 2020 - This paper studies verification of a combination of hand gestures recognized by using the Myo armband as an input device. To this end, relationship between data distribution and learning curves is investigated for binary classification and multi-class classification problems."
+            }
+          ]
+        },
+        "verification_status": "verified",
+        "verification_evidence": [
+          "2 days ago - In modern culture as bunny ears \"the actual symbolism has been forgotten and only the offence remains\". Dap greeting is a fist-to-fist handshake popularized in Western cultures since the 1970s, related to the fist bump. Dismissive hand wave: this is gesture in which a person waves their hand ...",
+          "April 22, 2025 - Based on the relative motion of these, the gesture can be detected with high accuracy, depending on the quality of the input and the algorithm's approach. In order to interpret movements of the body, one has to classify them according to common properties and the message the movements may express. For example, in sign language, each ...",
+          "May 20, 2020 - This paper studies verification of a combination of hand gestures recognized by using the Myo armband as an input device. To this end, relationship between data distribution and learning curves is investigated for binary classification and multi-class classification problems."
+        ]
+      },
+      {
+        "statement": "we assure you the mapping is accurate",
+        "reason": "An assurance is a subjective statement and lacks verifiable evidence.",
+        "llm_verdict": "needs_verification",
+        "llm_rationale": "The project acknowledges bugs and sensitivity to minor gesture differences, contradicting the claim of perfect accuracy.",
+        "verification_result": {
+          "status": "verified",
+          "note": "Found 1 supporting source(s).",
+          "evidence": [
+            {
+              "title": "How Accurate is My Map? - DroneDeploy",
+              "url": "https://help.dronedeploy.com/hc/en-us/articles/1500004964062-How-Accurate-is-My-Map",
+              "snippet": "Dec 4, 2024 · To truly measure map accuracy you must include checkpoints or an object with known dimensions that can be measured in the processed map to check for differences."
+            },
+            {
+              "title": "How Accurate Are Your Parcels? Rethinking Parcel Mapping and ...",
+              "url": "https://www.pandaconsulting.com/logb/2025/4/28/how-accurate-are-your-parcels-rethinking-parcel-mapping-and-accuracy-in-gis",
+              "snippet": "Apr 28, 2025 · At its core, accuracy refers to how close a measurement is to the true value. Precision, on the other hand, describes how consistently you can replicate a measurement. Imagine a target: High Precision , Low Accuracy : Measurements are tightly grouped but far from the bullseye."
+            },
+            {
+              "title": "Best Practices in Evaluating Geospatial Mapping Accuracy ...",
+              "url": "https://lidarmag.com/2024/05/04/best-practices-in-evaluating-geospatial-mapping-accuracy-according-to-the-new-asprs-accuracy-standards/",
+              "snippet": "May 4, 2024 · Any mapping process we conduct today inherits two modeling errors that influence product accuracy . The first modeling error is caused by the inaccuracy of the internal geometric determination during the aerial triangulation, or the boresight calibration in the case of lidar processing."
+            }
+          ]
+        },
+        "verification_status": "verified",
+        "verification_evidence": [
+          "Dec 4, 2024 · To truly measure map accuracy you must include checkpoints or an object with known dimensions that can be measured in the processed map to check for differences.",
+          "Apr 28, 2025 · At its core, accuracy refers to how close a measurement is to the true value. Precision, on the other hand, describes how consistently you can replicate a measurement. Imagine a target: High Precision , Low Accuracy : Measurements are tightly grouped but far from the bullseye.",
+          "May 4, 2024 · Any mapping process we conduct today inherits two modeling errors that influence product accuracy . The first modeling error is caused by the inaccuracy of the internal geometric determination during the aerial triangulation, or the boresight calibration in the case of lidar processing."
+        ]
+      }
+    ],
+    "ai_generated_likelihood": 0.0,
+    "combined_summary": "This hackathon project tackles the significant challenge of limited online resources for American Sign Language (ASL) translation. It aims to bridge the communication gap by creating a web-based tool that translates ASL hand gestures into the English alphabet. The project utilizes OpenCV for video processing and MediaPipe for hand gesture tracking based on landmark coordinates. Despite current limitations in handling dynamic gestures, the project accurately maps static hand positions for each letter. The project's core technologies include OpenCV, MediaPipe, potentially Flask, JavaScript, and CSS, highlighting its focus on web accessibility. Ultimately, the project seeks to provide a learning platform for ASL, offering a valuable resource for both ASL learners and those seeking to communicate with the deaf community."
+  }
+}

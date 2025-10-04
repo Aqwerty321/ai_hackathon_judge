@@ -1,4 +1,8 @@
-# AI Hackathon Judge
+# AI Hac- 🧾 **Code-only friendly**: gracefully falls back to README/description text when no video is provided.
+- �️ **Archive aware**: automatically unpacks `.zip` submissions before analysis.
+- �📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
+- 🤖 **AI-powered summaries** using Google Gemini Pro API (highest priority) with automatic BART fallback.
+- 🧮 **Configurable weighting** of each modality to align with event priorities.on Judge
 
 An extensible, explainable judging pipeline for AI hackathon submissions. It processes video presentations, written descriptions, and code repositories to produce transparent scores and reports.
 
@@ -42,13 +46,22 @@ tests/                # Pytest-based unit tests
    ```powershell
    pip install -r requirements.txt
    ```
-   This pulls in pytest for the suite, pylint + radon for the Stage 4 code analyzer, and pandas + Jinja2 for Stage 5 reporting.
-2. Run the sample pipeline:
+   This pulls in pytest for the suite, pylint + radon for the Stage 4 code analyzer, pandas + Jinja2 for Stage 5 reporting, and google-generativeai for Gemini Pro integration.
+
+2. **(Optional) Set up Gemini Pro API for better summaries:**
+   ```powershell
+   # Get your API key from https://makersuite.google.com/app/apikey
+   $env:GEMINI_API_KEY="your-api-key-here"
+   ```
+   See [GEMINI_INTEGRATION.md](GEMINI_INTEGRATION.md) for full documentation. If not set, the pipeline automatically falls back to the local BART model.
+
+3. Run the sample pipeline:
    ```powershell
    python -m ai_judge.main
    ```
    The runner will automatically expand `data/submissions/<name>.zip` if only an archive is present.
-3. Execute the test suite:
+
+4. Execute the test suite:
    ```powershell
    python -m pytest
    ```

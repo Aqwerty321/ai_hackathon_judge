@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ASL Translator</title>
+  <link rel="stylesheet" href="styles2.css">
+</head>
+<body>
+  <img class="background" src="bg.jpg">
+  <div class="container">
+    <div class="infobox1">
+
+
+      <div class="welcomediv">
+        <p class="welcometext">ASL to English Translator</p>
+      </div>
+
+
+      <div class="exciteddiv">
+        <p class="excitedtext">Dynamically translating ASL Alphabet Gestures to English Alphabets</p>
+      </div>
+
+
+      <div class="inputinfo">
+        <img class = 'videofeed' src="{{ url_for('video_feed') }}">
+          <!-- <video class="videofeed" autoplay controls>
+            <source src="{{ url_for('video_feed') }}" type="multipart/x-mixed-replace; boundary=frame">
+            Your browser does not support the video tag.
+        </video> -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>

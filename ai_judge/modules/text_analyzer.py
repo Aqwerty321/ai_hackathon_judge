@@ -26,11 +26,6 @@ try:  # pragma: no cover - optional heavy dependencies
 except ImportError:  # pragma: no cover - optional heavy dependencies
     pipeline = None  # type: ignore
 
-try:  # pragma: no cover - optional heavy dependencies
-    from ctransformers import AutoModelForCausalLM  # type: ignore
-except ImportError:  # pragma: no cover - optional heavy dependencies
-    AutoModelForCausalLM = None  # type: ignore
-
 try:  # pragma: no cover - optional dependency
     from ddgs import DDGS  # type: ignore
 except ImportError:  # pragma: no cover
@@ -38,6 +33,11 @@ except ImportError:  # pragma: no cover
         from duckduckgo_search import DDGS  # type: ignore
     except ImportError:  # pragma: no cover
         DDGS = None  # type: ignore
+
+try:  # pragma: no cover - optional dependency
+    import google.generativeai as genai  # type: ignore
+except ImportError:  # pragma: no cover
+    genai = None  # type: ignore
 
 if DDGS is not None and getattr(DDGS, "__module__", "").startswith("duckduckgo_search"):
     warnings.filterwarnings(
@@ -182,6 +182,7 @@ class TextAnalysisResult:
     similarity_matches: Tuple[SimilarityMatch, ...]
     suspect_claims: Tuple[ClaimFlag, ...]
     ai_generated_likelihood: float
+    combined_summary: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -191,6 +192,7 @@ class TextAnalysisResult:
             "similarity_matches": [match.to_dict() for match in self.similarity_matches],
             "suspect_claims": [claim.to_dict() for claim in self.suspect_claims],
             "ai_generated_likelihood": self.ai_generated_likelihood,
+            "combined_summary": self.combined_summary,
         }
 
     @classmethod
@@ -212,6 +214,7 @@ class TextAnalysisResult:
             similarity_matches=matches,
             suspect_claims=claims,
             ai_generated_likelihood=float(data.get("ai_generated_likelihood", 0.0)),
+            combined_summary=data.get("combined_summary"),
         )
 
 
@@ -225,13 +228,10 @@ class TextAnalyzer:
         embedding_model: str | None = None,
         top_k: int = 5,
         ai_detector_model: str | None = None,
-        llm_model_path: Path | None = None,
-        llm_model_type: str = "auto",
-        llm_max_tokens: int = 256,
-        llm_context_length: int = 4096,
-        llm_gpu_layers: int | None = None,
         ai_detector_context_length: int = 4096,
         device_spec: DeviceSpec | None = None,
+        gemini_api_key: str | None = None,
+        gemini_model: str = "models/gemini-2.0-flash-lite",
     ) -> None:
         self.similarity_corpus_dir = Path(similarity_corpus_dir) if similarity_corpus_dir else None
         self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
@@ -240,20 +240,17 @@ class TextAnalyzer:
         self._embedding_model_name = embedding_model
         self._ai_detector_model = ai_detector_model
         self._top_k = top_k
-        self._llm_model_path = Path(llm_model_path) if llm_model_path else None
-        self._llm_model_type = llm_model_type
-        self._llm_max_tokens = llm_max_tokens
 
         self._embedder = None
         self._ai_detector = None
         self._corpus_cache: list[tuple[str, str]] | None = None
-        self._llm = None
         self._device_spec = device_spec
-        self._llm_context_length = max(512, llm_context_length)
-        self._llm_gpu_layers = llm_gpu_layers
         self._ai_detector_context_length = max(512, ai_detector_context_length)
+        self._gemini_api_key = gemini_api_key
+        self._gemini_model = gemini_model
+        self._gemini_client = None
 
-    def analyze(self, submission_dir: Path) -> TextAnalysisResult:
+    def analyze(self, submission_dir: Path, transcript: str = "") -> TextAnalysisResult:
         description, _ = read_submission_description(submission_dir)
         word_count = len(description.split())
         matches = self._compute_similarity(description)
@@ -261,9 +258,10 @@ class TextAnalyzer:
         feasibility = self._estimate_feasibility(word_count)
         summary = self._summarize(description)
         claims = self._flag_claims(description)
-        claims = self._enrich_claims_with_llm(description, claims)
+        claims = self._enrich_claims_with_gemini(description, claims)
         claims = self._verify_claims(claims)
         ai_likelihood = self._estimate_ai_generated(description)
+        combined_summary = self._generate_combined_summary(description, transcript)
 
         return TextAnalysisResult(
             originality_score=originality,
@@ -272,6 +270,7 @@ class TextAnalyzer:
             similarity_matches=tuple(matches),
             suspect_claims=tuple(claims),
             ai_generated_likelihood=round(ai_likelihood, 3),
+            combined_summary=combined_summary,
         )
 
     # ------------------------------------------------------------------
@@ -450,6 +449,113 @@ class TextAnalyzer:
     # ------------------------------------------------------------------
     # Claim detection & AI-generated heuristics
     def _flag_claims(self, description: str) -> list[ClaimFlag]:
+        """Flag suspect claims using Gemini AI for intelligent detection."""
+        # Try Gemini-powered detection first
+        if self._gemini_api_key and genai:
+            try:
+                return self._flag_claims_with_gemini(description)
+            except Exception as exc:
+                LOGGER.warning("Gemini claim flagging failed: %s. Falling back to rule-based detection.", exc)
+        
+        # Fallback: Rule-based detection
+        return self._flag_claims_rule_based(description)
+    
+    def _flag_claims_with_gemini(self, description: str) -> list[ClaimFlag]:
+        """Use Gemini AI to intelligently identify suspect claims."""
+        # Initialize Gemini client if needed
+        if self._gemini_client is None:
+            genai.configure(api_key=self._gemini_api_key)
+            self._gemini_client = genai.GenerativeModel(self._gemini_model)
+        
+        # Clean and prepare text
+        cleaned_desc = self._clean_text_for_gemini(description)[:3000]
+        
+        prompt = (
+            "You are an expert hackathon judge analyzing project descriptions for suspicious or unverifiable claims.\n\n"
+            "Identify statements that:\n"
+            "- Make absolute guarantees or promises (e.g., '100% accurate', 'guaranteed', 'never fails')\n"
+            "- Claim unusually high success rates (e.g., '99% accuracy', '95% performance')\n"
+            "- Use marketing hype without evidence (e.g., 'revolutionary', 'state-of-the-art', 'breakthrough')\n"
+            "- Make quantifiable claims that need verification (e.g., specific metrics, benchmarks)\n"
+            "- Overstate capabilities or impact\n\n"
+            "For each suspect claim, provide:\n"
+            "1. The exact statement (quote from text)\n"
+            "2. Why it's suspicious (brief reason)\n\n"
+            f"Project description:\n{cleaned_desc}\n\n"
+            "Output format (one claim per line pair):\n"
+            "CLAIM: <exact quote>\n"
+            "REASON: <why it's suspicious>\n\n"
+            "If no suspicious claims found, respond with: NO_CLAIMS_FOUND\n"
+        )
+        
+        try:
+            response = self._gemini_client.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.3,  # Lower for more precise detection
+                    "top_p": 0.9,
+                    "top_k": 40,
+                    "max_output_tokens": 800,
+                },
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            )
+            
+            if response and hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                    if candidate.content.parts:
+                        response_text = candidate.content.parts[0].text.strip()
+                        
+                        if "NO_CLAIMS_FOUND" in response_text:
+                            LOGGER.info("Gemini found no suspicious claims")
+                            return []
+                        
+                        # Parse claims from response
+                        flags = self._parse_gemini_claims(response_text)
+                        LOGGER.info("Gemini identified %d suspicious claims", len(flags))
+                        return flags[:self._top_k]
+        except Exception as exc:
+            LOGGER.warning("Gemini claim detection failed: %s", exc)
+            raise
+        
+        return []
+    
+    def _parse_gemini_claims(self, response_text: str) -> list[ClaimFlag]:
+        """Parse Gemini's response to extract claims and reasons."""
+        flags: list[ClaimFlag] = []
+        lines = response_text.split('\n')
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Look for CLAIM: pattern
+            if line.upper().startswith('CLAIM:'):
+                claim_text = line[6:].strip().strip('"\'')
+                reason_text = "AI-detected suspicious claim"
+                
+                # Look for corresponding REASON: on next lines
+                for j in range(i + 1, min(i + 3, len(lines))):
+                    next_line = lines[j].strip()
+                    if next_line.upper().startswith('REASON:'):
+                        reason_text = next_line[7:].strip()
+                        i = j
+                        break
+                
+                if claim_text:
+                    flags.append(ClaimFlag(statement=claim_text, reason=reason_text))
+            
+            i += 1
+        
+        return flags
+    
+    def _flag_claims_rule_based(self, description: str) -> list[ClaimFlag]:
+        """Fallback rule-based claim detection."""
         sentences = [sentence.strip() for sentence in re.split(r"[\.!?]\s+", description) if sentence.strip()]
         keywords = {
             "accuracy",
@@ -482,57 +588,67 @@ class TextAnalyzer:
 
     # ------------------------------------------------------------------
     # Local LLM enrichment
-    def _enrich_claims_with_llm(self, description: str, claims: list[ClaimFlag]) -> list[ClaimFlag]:
-        if not claims or self._llm_model_path is None:
-            return claims
-        if not self._llm_model_path.exists():
-            LOGGER.warning("LLM model path '%s' not found; skipping claim verification.", self._llm_model_path)
-            return claims
-        if AutoModelForCausalLM is None:
-            LOGGER.warning("ctransformers is not installed; skipping local LLM verification.")
-            return claims
 
-        if self._llm is None:
-            try:  # pragma: no cover - heavy dependency
-                llm_kwargs: dict[str, object] = {
-                    "model_type": self._llm_model_type,
-                    "context_length": self._llm_context_length,
-                }
-                gpu_layers = self._resolve_gpu_layers()
-                if gpu_layers is not None:
-                    llm_kwargs["gpu_layers"] = gpu_layers
-                if self._device_spec is not None and self._device_spec.kind != "cpu":
-                    llm_kwargs["device"] = self._device_spec.kind
-                self._llm = AutoModelForCausalLM.from_pretrained(
-                    str(self._llm_model_path),
-                    **llm_kwargs,
-                )
-            except Exception as exc:  # pragma: no cover
-                LOGGER.warning("Failed to load local LLM from '%s': %s", self._llm_model_path, exc)
-                return claims
 
-        enriched: list[ClaimFlag] = []
-        for idx, claim in enumerate(claims):
-            if idx >= self._top_k:
+    def _enrich_claims_with_gemini(self, description: str, claims: list[ClaimFlag]) -> list[ClaimFlag]:
+        """Use Gemini AI to verify and enrich claims."""
+        try:
+            # Initialize Gemini client if needed
+            if self._gemini_client is None:
+                genai.configure(api_key=self._gemini_api_key)
+                self._gemini_client = genai.GenerativeModel(self._gemini_model)
+            
+            enriched: list[ClaimFlag] = []
+            for idx, claim in enumerate(claims):
+                if idx >= self._top_k:
+                    enriched.append(claim)
+                    continue
+                
+                # Build prompt for claim verification
+                prompt = self._build_claim_prompt(description, claim.statement)
+                
+                try:
+                    response = self._gemini_client.generate_content(
+                        prompt,
+                        generation_config={
+                            "temperature": 0.2,  # Low for factual analysis
+                            "top_p": 0.8,
+                            "top_k": 40,
+                            "max_output_tokens": 150,
+                        },
+                        safety_settings=[
+                            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                        ]
+                    )
+                    
+                    # Parse response
+                    if response and hasattr(response, 'candidates') and response.candidates:
+                        candidate = response.candidates[0]
+                        if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                            if candidate.content.parts:
+                                response_text = candidate.content.parts[0].text
+                                verdict, rationale = self._parse_llm_verdict(response_text)
+                                enriched.append(replace(claim, llm_verdict=verdict, llm_rationale=rationale))
+                                continue
+                except Exception as exc:
+                    LOGGER.debug("Gemini claim verification failed for '%s': %s", claim.statement[:50], exc)
+                
+                # Fallback: keep claim without enrichment
                 enriched.append(claim)
-                continue
-            prompt = self._build_claim_prompt(description, claim.statement)
-            try:  # pragma: no cover - heavy dependency
-                response = self._llm(
-                    prompt,
-                    max_new_tokens=self._llm_max_tokens,
-                    temperature=0.1,
-                )
-            except Exception as exc:
-                LOGGER.debug("Local LLM generation failed: %s", exc)
-                enriched.append(claim)
-                continue
-            verdict, rationale = self._parse_llm_verdict(response)
-            enriched.append(replace(claim, llm_verdict=verdict, llm_rationale=rationale))
-        return enriched
+            
+            LOGGER.info("Enriched %d claims using Gemini AI", len([c for c in enriched if c.llm_verdict]))
+            return enriched
+            
+        except Exception as exc:
+            LOGGER.warning("Gemini claim enrichment failed: %s", exc)
+            return claims
 
     def _build_claim_prompt(self, description: str, claim: str) -> str:
-        description = self._truncate_for_llm(description.strip() or "No description provided.")
+        # Truncate description to reasonable length for Gemini context
+        description = (description.strip() or "No description provided.")[:2000]
         claim = claim.strip()
         return (
             "You are an impartial hackathon judge verifying factual claims.\n"
@@ -600,17 +716,137 @@ class TextAnalyzer:
         ai_likelihood = 0.4 * repetition_score + 0.3 * (0.2 - pronoun_ratio)
         return max(0.0, min(1.0, ai_likelihood + 0.3))
 
-    def _resolve_gpu_layers(self) -> int | None:
-        if self._llm_gpu_layers is not None:
-            return self._llm_gpu_layers
-        if self._device_spec is None:
+    def _generate_combined_summary(self, description: str, transcript: str) -> str | None:
+        """Generate an AI-powered summary combining README and video transcript.
+        
+        Priority order:
+        1. Gemini Pro API (if API key provided)
+        2. Local BART model (facebook/bart-large-cnn)
+        """
+        # Merge description and transcript
+        combined = self._merge_texts(description, transcript)
+        if not combined.strip():
             return None
-        if self._device_spec.kind == "cuda":
-            return 32
+
+        # PRIORITY 1: Try Gemini Pro API first
+        if self._gemini_api_key and genai:
+            try:
+                summary = self._generate_summary_with_gemini(combined)
+                if summary:
+                    LOGGER.info("Generated combined summary using Gemini Pro API")
+                    return summary
+            except Exception as exc:
+                LOGGER.warning("Gemini API summary generation failed: %s", exc)
+
+        # No fallback - Gemini-only for AI-powered summaries
+        LOGGER.warning("Gemini API not configured or failed; no combined summary available.")
         return None
 
-    def _truncate_for_llm(self, text: str) -> str:
-        max_chars = max(512, self._llm_context_length * 4)
-        if len(text) <= max_chars:
-            return text
-        return text[: max_chars - 3] + "..."
+    def _generate_summary_with_gemini(self, text: str) -> str | None:
+        """Generate summary using Google Gemini Pro API."""
+        if not genai or not self._gemini_api_key:
+            return None
+
+        try:
+            # Initialize Gemini client if not already done
+            if self._gemini_client is None:
+                genai.configure(api_key=self._gemini_api_key)
+                self._gemini_client = genai.GenerativeModel(self._gemini_model)
+
+            # Clean and prepare text to avoid RECITATION filtering
+            cleaned_text = self._clean_text_for_gemini(text)
+            
+            # Craft a more instructive prompt that encourages original phrasing
+            prompt = f"""Analyze this hackathon project and write a comprehensive ORIGINAL summary in your own words (4-6 sentences). 
+Do NOT copy phrases from the input. Paraphrase and synthesize the key information about:
+- What specific problem does it solve and why is it important?
+- What are the main technical features and capabilities?
+- What technologies, languages, and frameworks are used?
+- What makes this project innovative or interesting?
+- What is the target use case or audience?
+
+Project Information:
+{cleaned_text}
+
+Write a detailed, fresh, original summary now:"""
+
+            # Generate summary with higher temperature to encourage original phrasing
+            response = self._gemini_client.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.7,  # Higher = more creative/original
+                    "top_p": 0.95,
+                    "top_k": 40,
+                    "max_output_tokens": 400,  # Increased for longer summaries
+                },
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            )
+
+            # Check if response is valid
+            if response and hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                
+                # Check if generation completed successfully
+                if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                    if candidate.content.parts:
+                        summary = candidate.content.parts[0].text.strip()
+                        # Clean up any potential markdown formatting
+                        summary = re.sub(r'^#+\s*', '', summary)
+                        summary = re.sub(r'\*\*([^*]+)\*\*', r'\1', summary)
+                        if summary:
+                            LOGGER.info("Generated combined summary using Gemini Pro API")
+                            return summary
+                
+                # If we got here, response was blocked or empty
+                finish_reason = getattr(candidate, 'finish_reason', 'UNKNOWN')
+                LOGGER.warning("Gemini response blocked or empty (finish_reason=%s)", finish_reason)
+
+        except Exception as exc:
+            LOGGER.warning("Gemini API call failed: %s", exc)
+
+        return None
+
+    def _clean_text_for_gemini(self, text: str) -> str:
+        """Clean and prepare text to reduce RECITATION filtering triggers."""
+        # Remove emojis and special unicode characters
+        cleaned = re.sub(r'[^\x00-\x7F]+', ' ', text)
+        
+        # Remove markdown formatting
+        cleaned = re.sub(r'#+\s*', '', cleaned)  # Headers
+        cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)  # Bold
+        cleaned = re.sub(r'\*([^*]+)\*', r'\1', cleaned)  # Italic
+        cleaned = re.sub(r'`([^`]+)`', r'\1', cleaned)  # Code
+        
+        # Remove URLs to reduce training data matches
+        cleaned = re.sub(r'https?://[^\s]+', '', cleaned)
+        
+        # Remove common tutorial boilerplate phrases
+        cleaned = re.sub(r'(Clone the Repository|Getting Started|Installation|How to Run)', '', cleaned, flags=re.IGNORECASE)
+        
+        # Normalize whitespace
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+        
+        # Truncate to avoid overwhelming (keep first 2000 chars)
+        if len(cleaned) > 2000:
+            cleaned = cleaned[:2000] + "..."
+        
+        return cleaned.strip()
+
+    def _merge_texts(self, description: str, transcript: str) -> str:
+        """Combine description and transcript intelligently."""
+        parts = []
+
+        desc_clean = description.strip()
+        if desc_clean:
+            parts.append(f"Project Description: {desc_clean}")
+
+        trans_clean = transcript.strip()
+        if trans_clean:
+            parts.append(f"Presentation Transcript: {trans_clean}")
+
+        return "\n\n".join(parts)
