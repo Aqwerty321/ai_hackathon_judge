@@ -127,6 +127,14 @@ print(f"Model ready at {dest}")
 PY
    ```
 
+#### Optional Web Evidence Checks
+
+- Install [`duckduckgo-search`](https://pypi.org/project/duckduckgo-search/) to let the analyzer fetch lightweight supporting evidence for suspect claims:
+   ```powershell
+   pip install duckduckgo-search
+   ```
+- When installed, each flagged claim is annotated with an evidence status, note, and up to three supporting snippets in the submission report. If the package is missing or network access fails, the verification step is skipped gracefully.
+
 ## Extending the Pipeline
 
 - Replace the heuristic analyzers with ML-backed implementations.

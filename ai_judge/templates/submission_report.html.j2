@@ -216,6 +216,22 @@
           {% if claim.llm_verdict %}
           <p><span class="badge-{{ 'success' if claim.llm_verdict == 'plausible' else 'danger' }}">{{ claim.llm_verdict }}</span> — {{ claim.llm_rationale }}</p>
           {% endif %}
+          {% if claim.verification_result %}
+          <p><span class="badge-{{ 'success' if claim.verification_result.status == 'verified' else ('danger' if claim.verification_result.status == 'contradicted' else 'info') }}">{{ claim.verification_result.status | default('unknown') }}</span> — {{ claim.verification_result.note | default('No verification note available.') }}</p>
+          {% if claim.verification_result.evidence %}
+          <ul>
+            {% for item in claim.verification_result.evidence %}
+            <li>
+              {% if item.title %}<strong>{{ item.title }}</strong>{% endif %}
+              {% if item.url %} <a href="{{ item.url }}" target="_blank" rel="noopener">Source</a>{% endif %}
+              {% if item.snippet %}
+              <blockquote>{{ item.snippet }}</blockquote>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% endif %}
         </li>
         {% endfor %}
       </ul>

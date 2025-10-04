@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import logging
 import math
 import re
@@ -29,6 +28,11 @@ try:  # pragma: no cover - optional heavy dependencies
     from ctransformers import AutoModelForCausalLM  # type: ignore
 except ImportError:  # pragma: no cover - optional heavy dependencies
     AutoModelForCausalLM = None  # type: ignore
+
+try:  # pragma: no cover - optional dependency
+    from duckduckgo_search import DDGS  # type: ignore
+except ImportError:  # pragma: no cover
+    DDGS = None  # type: ignore
 
 
 LOGGER = logging.getLogger(__name__)
@@ -59,6 +63,40 @@ class SimilarityMatch:
 
 
 @dataclass(frozen=True)
+class ClaimVerificationResult:
+    """Outcome of lightweight external fact-checking for a claim."""
+
+    status: str
+    note: str | None = None
+    evidence: Tuple[Mapping[str, str], ...] = tuple()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "status": self.status,
+            "note": self.note,
+            "evidence": [dict(item) for item in self.evidence],
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "ClaimVerificationResult":
+        evidence_items: list[Mapping[str, str]] = []
+        for item in data.get("evidence", []):
+            if isinstance(item, Mapping):
+                evidence_items.append(
+                    {
+                        "title": str(item.get("title", "")),
+                        "url": str(item.get("url", "")),
+                        "snippet": str(item.get("snippet", "")),
+                    }
+                )
+        return cls(
+            status=str(data.get("status", "")),
+            note=(data.get("note") if data.get("note") is not None else None),
+            evidence=tuple(evidence_items),
+        )
+
+
+@dataclass(frozen=True)
 class ClaimFlag:
     """Represents a potentially exaggerated or unverifiable claim."""
 
@@ -66,17 +104,51 @@ class ClaimFlag:
     reason: str
     llm_verdict: str | None = None
     llm_rationale: str | None = None
+    verification_result: ClaimVerificationResult | None = None
 
     def to_dict(self) -> dict[str, object]:
+        verification_dict = (
+            self.verification_result.to_dict() if self.verification_result is not None else None
+        )
         return {
             "statement": self.statement,
             "reason": self.reason,
             "llm_verdict": self.llm_verdict,
             "llm_rationale": self.llm_rationale,
+            "verification_result": verification_dict,
+            # Backwards compatibility with cached results
+            "verification_status": (
+                verification_dict.get("status") if verification_dict else None
+            ),
+            "verification_evidence": (
+                [item.get("snippet", "") for item in verification_dict.get("evidence", [])]
+                if verification_dict
+                else []
+            ),
         }
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ClaimFlag":
+        verification_result: ClaimVerificationResult | None = None
+        verification_payload = data.get("verification_result")
+        if isinstance(verification_payload, Mapping):
+            verification_result = ClaimVerificationResult.from_dict(verification_payload)
+        else:
+            status = data.get("verification_status")
+            evidence = [item for item in data.get("verification_evidence", []) if isinstance(item, str)]
+            if status or evidence:
+                verification_result = ClaimVerificationResult(
+                    status=str(status) if status else "needs_review",
+                    note=None,
+                    evidence=tuple(
+                        {
+                            "title": "",
+                            "url": "",
+                            "snippet": snippet,
+                        }
+                        for snippet in evidence
+                    ),
+                )
         return cls(
             statement=str(data.get("statement", "")),
             reason=str(data.get("reason", "")),
@@ -84,6 +156,7 @@ class ClaimFlag:
             llm_rationale=(
                 data.get("llm_rationale") if data.get("llm_rationale") is not None else None
             ),
+            verification_result=verification_result,
         )
 
 
@@ -169,6 +242,7 @@ class TextAnalyzer:
         summary = self._summarize(description)
         claims = self._flag_claims(description)
         claims = self._enrich_claims_with_llm(description, claims)
+        claims = self._verify_claims(claims)
         ai_likelihood = self._estimate_ai_generated(description)
 
         return TextAnalysisResult(
@@ -272,6 +346,79 @@ class TextAnalyzer:
             )
         matches.sort(key=lambda item: item.score, reverse=True)
         return matches[: self._top_k]
+
+    # ------------------------------------------------------------------
+    # Claim verification
+    def _verify_claims(self, claims: Sequence[ClaimFlag]) -> Tuple[ClaimFlag, ...]:
+        if not claims:
+            return tuple()
+
+        verified: list[ClaimFlag] = []
+        for claim in claims:
+            evidence = self._search_evidence(claim.statement)
+            verification_result = self._derive_verification_result(claim.statement, evidence)
+            verified.append(replace(claim, verification_result=verification_result))
+        return tuple(verified)
+
+    def _search_evidence(self, query: str, max_results: int = 3) -> list[Mapping[str, Any]]:
+        if DDGS is None:
+            return []
+        try:  # pragma: no cover - network dependent
+            with DDGS() as ddgs:
+                results = ddgs.text(query, max_results=max_results)
+                return list(results)
+        except Exception as exc:  # pragma: no cover
+            LOGGER.debug("Claim verification search failed: %s", exc)
+            return []
+
+    def _derive_verification_result(
+        self, statement: str, evidence: Iterable[Mapping[str, Any]]
+    ) -> ClaimVerificationResult | None:
+        normalized_evidence: list[Mapping[str, str]] = []
+        statement_tokens = {
+            token
+            for token in re.findall(r"[a-zA-Z0-9%]+", statement.lower())
+            if len(token) > 3
+        }
+        support_hits = 0
+        for entry in evidence:
+            snippet = str(
+                entry.get("body")
+                or entry.get("snippet")
+                or entry.get("description")
+                or entry.get("title")
+                or ""
+            ).strip()
+            if not snippet:
+                continue
+            haystack_tokens = set(re.findall(r"[a-zA-Z0-9%]+", snippet.lower()))
+            if statement_tokens:
+                overlap = len(statement_tokens & haystack_tokens) / len(statement_tokens)
+                if overlap >= 0.25:
+                    support_hits += 1
+            normalized_evidence.append(
+                {
+                    "title": str(entry.get("title", "")),
+                    "url": str(entry.get("href") or entry.get("url") or ""),
+                    "snippet": snippet,
+                }
+            )
+
+        if not normalized_evidence:
+            return None
+
+        if support_hits:
+            status = "verified"
+            note = f"Found {support_hits} supporting source(s)."
+        else:
+            status = "needs_review"
+            note = "No clear supporting evidence found; manual review recommended."
+
+        return ClaimVerificationResult(
+            status=status,
+            note=note,
+            evidence=tuple(normalized_evidence[:3]),
+        )
 
     def _snippet(self, text: str, max_length: int = 120) -> str:
         cleaned = " ".join(text.split())

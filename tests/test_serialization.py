@@ -1,5 +1,10 @@
 from ai_judge.modules.code_analyzer import CodeAnalysisResult
-from ai_judge.modules.text_analyzer import ClaimFlag, SimilarityMatch, TextAnalysisResult
+from ai_judge.modules.text_analyzer import (
+    ClaimFlag,
+    ClaimVerificationResult,
+    SimilarityMatch,
+    TextAnalysisResult,
+)
 from ai_judge.modules.video_analyzer import VideoAnalysisResult
 
 
@@ -21,7 +26,23 @@ def test_text_analysis_roundtrip() -> None:
         SimilarityMatch(source="ref", score=0.5, snippet="excerpt"),
     )
     claims = (
-        ClaimFlag(statement="claim", reason="reason", llm_verdict="plausible", llm_rationale="ok"),
+        ClaimFlag(
+            statement="claim",
+            reason="reason",
+            llm_verdict="plausible",
+            llm_rationale="ok",
+            verification_result=ClaimVerificationResult(
+                status="verified",
+                note="Confirmed against trusted source",
+                evidence=(
+                    {
+                        "title": "Trusted Source",
+                        "url": "https://example.com",
+                        "snippet": "This snippet confirms the claim.",
+                    },
+                ),
+            ),
+        ),
     )
     original = TextAnalysisResult(
         originality_score=0.8,
