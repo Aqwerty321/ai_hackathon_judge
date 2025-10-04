@@ -81,7 +81,6 @@ def process_submission_async(job_id: str, zip_path: Path, submission_name: str):
         result = run_pipeline(
             config=config,
             submission_name=submission_name,
-            clear_cache=False,
         )
         
         # Extract report path from first submission

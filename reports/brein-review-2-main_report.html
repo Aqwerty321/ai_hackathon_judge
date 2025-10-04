@@ -2,163 +2,445 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Hackathon Report: brein-review-2-main</title>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       :root {
-        color-scheme: light dark;
-        --accent: #2563eb;
-        --muted: #64748b;
-        font-family: "Segoe UI", sans-serif;
+        --primary: #7c3aed;
+        --primary-dark: #5b21b6;
+        --primary-light: #a78bfa;
+        --accent: #c084fc;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --text: #e2e8f0;
+        --text-light: #94a3b8;
+        --bg: #0f0a1e;
+        --bg-elevated: #1a1432;
+        --surface: #241b3e;
+        --border: #3d2f5f;
+        --radius: 12px;
+        --shadow-sm: 0 1px 3px rgba(124, 58, 237, 0.15);
+        --shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+        --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.3);
       }
 
       body {
-        margin: 0;
-        padding: 2rem 3rem 3rem;
-        background: #f8fafc;
-        color: #0f172a;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        background: var(--bg);
+        color: var(--text);
         line-height: 1.6;
       }
 
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Header */
       header {
-        border-bottom: 3px solid var(--accent);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
         margin-bottom: 2rem;
-        padding-bottom: 1rem;
+        box-shadow: var(--shadow-lg);
       }
 
-      h1 {
-        margin: 0 0 0.5rem;
+      header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
       }
 
-      h2 {
-        border-left: 4px solid var(--accent);
-        padding-left: 0.75rem;
-        margin-top: 2.5rem;
-      }
-
-      h3 {
-        margin-top: 1.5rem;
-      }
-
-      .score {
+      .score-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1.25rem;
+        border-radius: 999px;
         font-size: 1.25rem;
         font-weight: 600;
+        margin: 0.5rem 0;
+      }
+
+      .meta {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .card h2 {
+        color: var(--primary);
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .card h3 {
+        font-size: 1.1rem;
+        margin: 1.25rem 0 0.75rem;
+        color: var(--text);
+      }
+
+      /* AI Highlight Box */
+      .ai-box {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .ai-box h3 {
+        color: var(--primary-light);
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .ai-content {
+        background: var(--bg-elevated);
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        white-space: pre-wrap;
+        line-height: 1.7;
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* Markdown content styling */
+      .markdown-content {
+        line-height: 1.7;
+      }
+
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3,
+      .markdown-content h4 {
+        color: var(--primary-light);
+        margin-top: 1.25rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .markdown-content p {
+        margin: 0.75rem 0;
+      }
+
+      .markdown-content ul,
+      .markdown-content ol {
+        margin: 0.75rem 0;
+        padding-left: 1.5rem;
+      }
+
+      .markdown-content li {
+        margin: 0.5rem 0;
+      }
+
+      .markdown-content code {
+        background: var(--bg-elevated);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+        font-family: 'Consolas', 'Monaco', monospace;
         color: var(--accent);
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        font-size: 0.95rem;
+      .markdown-content pre {
+        background: var(--bg-elevated);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
       }
 
-      th,
-      td {
-        border: 1px solid #cbd5f5;
-        padding: 0.6rem 0.75rem;
-        text-align: left;
+      .markdown-content pre code {
+        background: none;
+        padding: 0;
       }
 
-      th {
-        background: #eff6ff;
+      .markdown-content strong {
+        color: var(--primary-light);
+        font-weight: 600;
       }
 
-      .chips {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin: 0.75rem 0;
+      .markdown-content em {
+        color: var(--accent);
       }
 
-      .chip {
-        background: #e0f2fe;
-        color: #0c4a6e;
-        padding: 0.25rem 0.6rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-      }
-
-      blockquote {
-        background: #f1f5f9;
-        margin: 0.75rem 0;
-        padding: 1rem 1.25rem;
-        border-left: 4px solid var(--accent);
+      .markdown-content blockquote {
+        border-left: 3px solid var(--primary);
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: var(--text-light);
         font-style: italic;
       }
 
+      /* Grid Layouts */
       .grid {
         display: grid;
-        gap: 1.25rem;
-      }
-
-      .chart {
-        margin: 1rem 0;
-        text-align: center;
-      }
-
-      .chart img {
-        max-width: 100%;
-        border-radius: 8px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-      }
-
-      .chart-row {
-        display: flex;
-        flex-wrap: wrap;
         gap: 1.5rem;
-        justify-content: flex-start;
-        align-items: stretch;
-      }
-
-      .chart-row .chart {
-        flex: 1 1 280px;
       }
 
       .grid-2 {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       }
 
-      .muted {
-        color: var(--muted);
+      .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      /* Metrics */
+      .metrics {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+      }
+
+      .metric {
+        background: var(--bg-elevated);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .metric:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .metric-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-light);
+      }
+
+      /* Metrics container */
+      .metrics-container {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        margin: 1.5rem 0;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+
+      /* Table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
         font-size: 0.9rem;
       }
 
-      .badge-success {
-        background: #dcfce7;
-        color: #14532d;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
+      th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        background: var(--bg-elevated);
         font-weight: 600;
+        color: var(--primary-light);
+      }
+
+      tr:hover {
+        background: rgba(124, 58, 237, 0.1);
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
         font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-success {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
       }
 
       .badge-danger {
-        background: #fee2e2;
-        color: #7f1d1d;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
-        font-weight: 600;
-        font-size: 0.85rem;
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
       }
 
-      footer {
-        margin-top: 3rem;
+      .badge-warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+      }
+
+      .badge-info {
+        background: rgba(124, 58, 237, 0.2);
+        color: var(--primary-light);
+        border: 1px solid rgba(124, 58, 237, 0.4);
+      }
+
+      /* Blockquote */
+      blockquote {
+        background: var(--bg-elevated);
+        margin: 0.75rem 0;
+        padding: 1rem;
+        border-left: 4px solid var(--primary);
+        font-style: italic;
+        border-radius: 4px;
+        color: var(--text-light);
+      }
+
+      /* Charts */
+      .chart-container {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .chart {
+        flex: 1;
+        min-width: 300px;
+        max-width: 500px;
+      }
+
+      .chart img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      /* Lists */
+      ul {
+        margin: 0.75rem 0 0.75rem 1.5rem;
+      }
+
+      li {
+        margin: 0.5rem 0;
+      }
+
+      li strong {
+        color: var(--primary);
+      }
+
+      /* Code blocks */
+      pre {
+        background: var(--bg);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
         font-size: 0.85rem;
-        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      details {
+        margin: 1rem 0;
+      }
+
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+        padding: 0.5rem;
+        background: var(--bg);
+        border-radius: 6px;
+        user-select: none;
+      }
+
+      summary:hover {
+        background: var(--border);
+      }
+
+      /* Links */
+      a {
+        color: var(--primary-light);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+      }
+
+      /* Utilities */
+      .text-muted {
+        color: var(--text-light);
+      }
+
+      .text-sm {
+        font-size: 0.875rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        header h1 {
+          font-size: 1.5rem;
+        }
+
+        .grid-2, .grid-3 {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>AI Hackathon Report: brein-review-2-main</h1>
-      <div class="score">Total score: 0.556</div>
-  <div class="muted">Analyzed directory: data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main</div>
-  <div class="muted">Original submission: data\submissions\brein-review-2-main.zip</div>
-      <div class="muted">Extraction root: data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d</div>
-    </header>
+    <div class="container">
+      <header>
+        <h1>🏆 brein-review-2-main</h1>
+        <div class="score-badge">Total Score: 0.644</div>
+        <div class="meta">📁 data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main</div>
+        <div class="meta">📦 Source: data\submissions\brein-review-2-main.zip</div>
+      </header>
 
-    <section>
-      <h2>Criteria Breakdown</h2>
+      <div class="card">
+        <h2>📊 Criteria Breakdown</h2>
       <table>
         <thead>
           <tr>
@@ -190,9 +472,9 @@
           <tr>
             <td>Code Quality & Correctness</td>
             <td>25.0%</td>
-            <td>0.013</td>
-            <td>0.013</td>
-            <td>0.003</td>
+            <td>0.367</td>
+            <td>0.367</td>
+            <td>0.092</td>
             <td>Average of readability, documentation, and coverage heuristics.</td>
           </tr>
           <tr>
@@ -205,137 +487,238 @@
           </tr>
         </tbody>
       </table>
-    </section>
-
-    <section>
-      <h2>Video Insights</h2>
-      <div class="chart">
-        <img src="charts\brein-review-2-main\video_metrics.png" alt="Video metrics chart" />
       </div>
-      <div class="grid grid-2">
-        <div>
-          <h3>Key Metrics</h3>
-          <p><strong>Clarity</strong>: 0.533</p>
-          <p><strong>Estimated duration</strong>: 90.0s</p>
-          <p><strong>Sentiment</strong>: negative (0.999)</p>
-          <p class="muted">Transcript source: readme_fallback</p>
-        </div>
-        <div>
-          <h3>Transcript excerpt</h3>
-          <blockquote># ASL to English Alphabet Translator - Review 1
+
+      <div class="card">
+        <h2>🎥 Video Analysis</h2>
+        
+        <div style="text-align: center; padding: 3rem 2rem; background: var(--bg-elevated); border-radius: var(--radius); border: 2px dashed var(--border);">
+          <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">🎥</div>
+          <h3 style="color: var(--text-light); margin-bottom: 0.5rem;">No Video Found</h3>
+          <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">
+            This submission doesn't include a presentation video (presentation.mp4) or transcript.
+          </p>
+          <p style="color: var(--text-light); font-size: 0.85rem; font-style: italic;">
+            💡 Tip: Include a <code style="background: var(--surface); padding: 0.2rem 0.4rem; border-radius: 4px;">presentation.mp4</code> file or 
+            <code style="background: var(--surface); padding: 0.2rem 0.4rem; border-radius: 4px;">presentation_transcript.txt</code> 
+            in your submission for full video analysis.
+          </p>
+          <div style="margin-top: 1.5rem; text-align: left;">
+            <h4 style="color: var(--primary-light); margin-bottom: 0.5rem;">📄 Using README as Fallback:</h4>
+            <blockquote style="background: var(--surface); padding: 1rem; border-left: 3px solid var(--primary); border-radius: 6px; text-align: left;">
+              # ASL to English Alphabet Translator - Review 1
 
 Seeing the lack of ASL to English Translators available online, we decided to start this project.
 Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we aim to first, effectively and accurately translate ASL to the English Alphabet.
 
 ## Issues 
-i. Tracking dynamic hand gestures for alphabets like J and…</blockquote>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Text Insights</h2>
-      <div class="chart-row">
-        <div class="chart">
-          <img src="charts\brein-review-2-main\text_metrics.png" alt="Text metrics chart" />
-        </div>
-        <div class="chart">
-          <img src="charts\brein-review-2-main\scores.png" alt="Criteria scores chart" />
-        </div>
-      </div>
-      <div class="grid grid-2">
-        <div>
-          <h3>Summary</h3>
-          <p># ASL to English Alphabet Translator - Review 1 Seeing the lack of ASL to English Translators available online, we decided to start this project. Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we...</p>
-          <div class="chips">
-            <span class="chip">Originality: 0.653</span>
-            <span class="chip">Feasibility: 1.0</span>
-            <span class="chip">AI likelihood: 0.0</span>
+i. Tracking dynamic hand gestures for alphabets like J and…
+            </blockquote>
+            <p class="text-muted text-sm" style="margin-top: 0.5rem;">Source: readme_fallback</p>
           </div>
         </div>
-        <div>
-          <h3>Similarity matches</h3>
-          <p class="muted">No notable similarities detected.</p>
-        </div>
       </div>
 
-      <h3>Flagged claims</h3>
-      <ul>
-        <li>
-          <p><strong># ASL to English Alphabet Translator - Review 1
+      <div class="card">
+        <h2>📝 Text Analysis</h2>
+        
+        <div class="ai-box">
+          <h3>🤖 AI-Powered Summary</h3>
+          <div class="ai-content">This hackathon project tackles the challenge of limited online resources for American Sign Language (ASL) translation. It aims to create a web-based translator that converts ASL hand gestures into the English alphabet using computer vision. The core functionality relies on OpenCV for video processing and MediaPipe to identify and track hand gestures, extracting landmark coordinates for analysis. The project innovatively addresses the difficulty of dynamic gestures by focusing on their final static positions. Built with Python and likely utilizing a web framework like Flask, the project targets individuals seeking to learn ASL, offering a practical tool for practice and understanding.</div>
+        </div>
 
-Seeing the lack of ASL to English Translators available online, we decided to start this project</strong></p>
-          <p class="muted">Reason: Contains quantifiable claim requiring verification</p>
-          <p><span class="badge-success">plausible</span> — The claim states that there is a lack of ASL to English Translators online and the team decided to create one. This is a factual statement based on their observation.</p>
-          <p><span class="badge-info">needs_review</span> — No clear supporting evidence found; manual review recommended.</p>
-          <ul>
-            <li>
-<strong>English Text to Indian Sign Language Translator</strong> <a href="https://www.cse.scu.edu/~m1wang/projects/NLP_English2IndianSignLanuguage_18w.pdf" target="_blank" rel="noopener">Source</a>              <blockquote>Our project aims at creating a translation system that consists of a parsing module which parses the input English sentence to phrase structure grammar.</blockquote>
-            </li>
-            <li>
-<strong>Evidence for Explicitation: Working from ASL into English</strong> <a href="https://digitalcommons.unf.edu/cgi/viewcontent.cgi?article=1147&context=joi" target="_blank" rel="noopener">Source</a>              <blockquote>by C McDermid · 2024 — This study examined how interpreters use expansion and compression strategies, and shifts in reference when working from ASL to English , going ...</blockquote>
-            </li>
-            <li>
-<strong>State of the Art of Automation in Sign Language</strong> <a href="https://dl.acm.org/doi/10.1145/3564769" target="_blank" rel="noopener">Source</a>              <blockquote>The automatic translation systems for sign language generation and sign language recognition are a potential solution for deaf people. Most of the sign language ...</blockquote>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>However, we assure you the mapping is accurate, so just try a few more times :)
+        <div class="chart-container">
+          <div class="chart">
+            <img src="charts\brein-review-2-main\text_metrics.png" alt="Text metrics" />
+          </div>
+          <div class="chart">
+            <img src="charts\brein-review-2-main\scores.png" alt="Scores" />
+          </div>
+        </div>
 
-![image](https://github.com/IshaanKetchup/brein/assets/88713875/3a845ee0-0fa8-4131-aa69-f5e38fb6d2fd)
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Originality</div>
+            <div class="metric-value">0.653</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Feasibility</div>
+            <div class="metric-value">1.0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">AI Likelihood</div>
+            <div class="metric-value">0.3</div>
+          </div>
+        </div>
 
-Note: Gesture for 'F' in above image is different from the gesture we have mapped, try rotating your hand so that the circular portion faces the camera :p</strong></p>
-          <p class="muted">Reason: Contains quantifiable claim requiring verification</p>
-          <p><span class="badge-success">plausible</span> — The claim states that they assure the accuracy of their mapping, and the provided image shows a difference in gesture for 'F', suggesting that minor differences might be expected.</p>
-          <p><span class="badge-info">needs_review</span> — No clear supporting evidence found; manual review recommended.</p>
-          <ul>
-            <li>
-<strong>List of gestures - Wikipedia</strong> <a href="https://en.wikipedia.org/wiki/List_of_gestures" target="_blank" rel="noopener">Source</a>              <blockquote>Shrug with only one hand ( rotating of wrist and opening hand palm upward) is used to signal confusion or "what?" - can be accompanied by squinting of eyes, slightly open mouth, and slight rotating of head (as if to listen more with one ear).</blockquote>
-            </li>
-            <li>
-<strong>Look at the letters you got and guess the word. The riddle helps you ....</strong> <a href="https://www.euroki.org/koza/look-at-the-letters-you-got-and-guess-the-word-the-riddle-helps-you-s------lettersi-hang-above-i-neve" target="_blank" rel="noopener">Source</a>              <blockquote>The riddle helps you . S_(10 letters) I hang above , I never rest, I sprinkle water at your request. In the bathroom, I make a sound, A gentle rain that falls around.</blockquote>
-            </li>
-            <li>
-<strong>TrimUI Smart Pro Setup Guide - Retro Handheld Guides</strong> <a href="https://retrohandheldguides.com/trimui-smart-pro-setup-guide/" target="_blank" rel="noopener">Source</a>              <blockquote>Simply connect a USB-C to USB-A cable from the TrimUI Smart Pro to your computer. Next, with the device turn on, navigate to the App menu and select the USB Storage app.</blockquote>
-            </li>
-          </ul>
-        </li>
-      </ul>
+        <div class="grid grid-2">
+          <div>
+            <h3>Project Description</h3>
+            <p># ASL to English Alphabet Translator - Review 1 Seeing the lack of ASL to English Translators available online, we decided to start this project. Using OpenCV to process video, and MediaPipe to track hand gestures (using landmark coordinates), we...</p>
+          </div>
+          <div>
+            <h3>Similarity Matches</h3>
+            <p class="text-muted">✓ No notable similarities detected</p>
+          </div>
+        </div>
+
+        <h3>Flagged Claims</h3>
+        <div class="card">
+          <div class="grid">
+            <div class="card">
+              <div class="markdown-content"><strong>effectively and accurately translate ASL to the English Alphabet</strong></div>
+              <p class="text-muted">Reason: <span class="markdown-content" style="display: inline;"><p>"Effectively and accurately" is a strong claim without specifying metrics or providing evidence of accuracy.</p></span></p>
+              <div class="ai-box" style="margin-top: 0.5rem; padding: 0.75rem;">
+                <span class="badge badge-danger">needs_verification</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>The project is described as "a little buggy and incomplete," so the claim of effectiveness and accuracy needs validation.</p></div>
+              </div>
+              <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
+                <span class="badge badge-success">verified</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>Found 2 supporting source(s).</p></div>
+                <ul style="margin-top: 0.5rem;">
+                  <li>
+<strong>Signapse | AI Sign Language Translator | Translate ASL & BSL</strong> <a href="https://www.signapse.ai/" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>Translate English into British Sign Language and American Sign Language with Signapse's AI translation software - SignStudio and SignStream. Book a demo.</p></blockquote>
+                  </li>
+                  <li>
+<strong>Asl Translator - Translator Maker</strong> <a href="https://translatormaker.com/translators/asl-translator" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>This translator bridges the gap between spoken language and American Sign Language ( ASL ) by converting text into a format suitable for ASL interpretation.</p></blockquote>
+                  </li>
+                  <li>
+<strong>American Sign Language Translator ( ASL ) ― LingoJam</strong> <a href="https://lingojam.com/AmericanSignLanguageTranslator" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>A translator which converts English characters into the American Sign Language alphabet .</p></blockquote>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="card">
+              <div class="markdown-content"><strong>Each gesture has been mapped accurately</strong></div>
+              <p class="text-muted">Reason: <span class="markdown-content" style="display: inline;"><p>This is a strong claim without providing any supporting evidence or metrics to back it up.</p></span></p>
+              <div class="ai-box" style="margin-top: 0.5rem; padding: 0.75rem;">
+                <span class="badge badge-danger">needs_verification</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>The claim of accurate mapping is contradicted by the project's admission of bugs and sensitivity to minor gesture differences.</p></div>
+              </div>
+              <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
+                <span class="badge badge-success">verified</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>Found 2 supporting source(s).</p></div>
+                <ul style="margin-top: 0.5rem;">
+                  <li>
+<strong>US20120274550A1 - Gesture mapping for display device - Google</strong> <a href="https://patents.google.com/patent/US20120274550A1/en" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>For example, the horizontal gesture referenced above may also be mapped to a control operation that closes a currently displayed document.</p></blockquote>
+                  </li>
+                  <li>
+<strong>WO2011119154A1 - Gesture mapping for display device - Google</strong> <a href="https://patents.google.com/patent/WO2011119154A1/en" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>Positional information is associated with movement of the object, and this information is mapped to one of the plurality of gestures stored in the ...</p></blockquote>
+                  </li>
+                  <li>
+<strong>CN102822773A - Gesture mapping for display devices - Google</strong> <a href="https://patents.google.com/patent/CN102822773A/en" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>... s hand in one embodiment, and caught by three-dimensional optical sensor 315.Object in the 3-D view is mapped to different plane, for each object has ...</p></blockquote>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="card">
+              <div class="markdown-content"><strong>we assure you the mapping is accurate</strong></div>
+              <p class="text-muted">Reason: <span class="markdown-content" style="display: inline;"><p>This is a guarantee without any supporting evidence.</p></span></p>
+              <div class="ai-box" style="margin-top: 0.5rem; padding: 0.75rem;">
+                <span class="badge badge-danger">needs_verification</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>The project description acknowledges bugs and sensitivity to minor gesture differences, contradicting the claim of perfect accuracy.</p></div>
+              </div>
+              <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
+                <span class="badge badge-success">verified</span>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;"><p>Found 1 supporting source(s).</p></div>
+                <ul style="margin-top: 0.5rem;">
+                  <li>
+<strong>Behind the map: how we keep our maps up to date | TomTom</strong> <a href="https://www.tomtom.com/newsroom/behind-the-map/continuous-map-processing/" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>We update the map and conduct a live quality ... Because this quality assured process is transactional, the map database is continuously releasable.</p></blockquote>
+                  </li>
+                  <li>
+<strong>Averting a Mapping Disaster? | POTs and PANs</strong> <a href="https://potsandpansbyccg.com/2022/09/12/averting-a-mapping-disaster/" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>... for six months that the likelihood of the new maps being accurate is low, and I was thinking about not writing anything more about mapping until we ...</p></blockquote>
+                  </li>
+                  <li>
+<strong>Mapping in 2019 - Corner bar - Mapillary Community Forum</strong> <a href="https://forum.mapillary.com/t/mapping-in-2019/3625" target="_blank" rel="noopener">Source</a>                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;"><p>During the conflict in Southeast Asia maps of any kind were considered to be classified information. The general public had no map of the bus ...</p></blockquote>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
     </section>
 
     <section>
       <h2>Code Insights</h2>
-      <div class="chart">
-        <img src="charts\brein-review-2-main\code_metrics.png" alt="Code metrics chart" />
-      </div>
-      <div class="chips">
-        <span class="chip">Readability: 0.0</span>
-        <span class="chip">Documentation: 0.0</span>
-        <span class="chip">Test coverage est.: 0.04</span>
-      </div>
-
-      <div class="grid grid-2">
-        <div>
-          <h3>Lint summary</h3>
-          <p class="muted">No lint feedback available.</p>
+      <div class="card">
+        <div class="chart-container">
+          <img src="charts\brein-review-2-main\code_metrics.png" alt="Code metrics chart" />
         </div>
-        <div>
-          <h3>Complexity snapshot</h3>
-          <p>Average complexity: 46.167</p>
-          <p>Normalized score: 0.0</p>
-          <ul>
-            <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\app.py — max 264.00, avg 46.17</li>
-            <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\templates\app.py — max 264.00, avg 46.17</li>
-          </ul>
+        
+        <div class="metrics-container">
+          <div class="grid grid-3">
+            <div class="metric">
+              <div class="metric-label">Readability</div>
+              <div class="metric-value">0.76</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Documentation</div>
+              <div class="metric-value">0.3</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Test Coverage Est.</div>
+              <div class="metric-value">0.04</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-box">
+          <h3>🤖 AI Code Insights (Powered by Gemini)</h3>
+          <div class="markdown-content"><p>Here's an analysis of the provided code metrics:</p>
+<ol>
+<li>
+<p><strong>Overall Assessment:</strong> The codebase appears to be a mix of CSS, Python, HTML, and Markdown, with Python dominating the line count. The analysis indicates that the Python code was not linted, but no issues were detected. The CSS portion is a significant portion of the project, and the absence of detailed CSS-specific analysis makes it difficult to fully assess the project's quality.</p>
+</li>
+<li>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>The project utilizes a variety of languages, suggesting potential for diverse functionality.</li>
+<li>The presence of Markdown files indicates an effort to document the project, although the amount is minimal.</li>
+<li>The project has a good balance of languages, suggesting a well-rounded project.</li>
+</ul>
+</li>
+<li>
+<p><strong>Improvement Suggestions:</strong></p>
+<ul>
+<li><strong>CSS Linting:</strong> Implement a CSS linter (e.g., Stylelint) to enforce code style consistency, identify potential errors, and improve maintainability of the CSS files.</li>
+<li><strong>CSS Organization (BEM or similar):</strong> Adopt a CSS methodology like BEM (Block, Element, Modifier) or similar to organize the CSS files, making them more readable and scalable. This is particularly important given the size of the CSS portion.</li>
+<li><strong>CSS Comments:</strong> Add comments to the CSS code to explain the purpose of complex rules, particularly in larger files.</li>
+<li><strong>Python Linting and Documentation:</strong> Run a linter (e.g., <code>pylint</code>, <code>flake8</code>) on the Python code and write docstrings for all functions. This will improve code readability and maintainability.</li>
+</ul>
+</li>
+<li>
+<p><strong>Priority Fix:</strong> Implement CSS linting (using Stylelint or a similar tool). This is the most direct way to improve the quality and consistency of the CSS code, which represents a significant portion of the project.</p>
+</li>
+</ol></div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Lint Summary</h3>
+            <p class="text-muted">✅ No linting issues detected or linting not available for this project type.</p>
+          </div>
+          <div class="card">
+            <h3>Complexity Snapshot</h3>
+            <p><strong>Average:</strong> 46.167</p>
+            <p><strong>Normalized Score:</strong> 0.0</p>
+            <ul>
+              <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\app.py — max 264.00, avg 46.17</li>
+              <li>C:\ai_hackathon_judge\data\intermediate_outputs\extracted_submissions\brein-review-2-main_af2c460d\brein-review-2-main\templates\app.py — max 264.00, avg 46.17</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Documentation Coverage</h3>
+            <p><strong>Docstrings:</strong> 0 / 14 (ratio 0.0)</p>
+          </div>
+          <div class="card">
+            <h3>Test Results</h3>
+            <p><strong>Status:</strong> skipped (exit )</p>
+          </div>
         </div>
       </div>
-
-      <h3>Documentation coverage</h3>
-      <p>Docstrings: 0 / 14 (ratio 0.0)</p>
-
-      <h3>Test results</h3>
-      <p>Status: skipped (exit )</p>
     </section>
 
     <footer>Generated automatically by the AI Hackathon Judge pipeline.</footer>

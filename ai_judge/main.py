@@ -175,8 +175,6 @@ def run_pipeline(
     submission_names: Sequence[str] | None = None,
     criteria: JudgingCriteria | None = None,
     criteria_path: str | Path | None = None,
-    skip_cache: bool = False,
-    clear_cache: bool = False,
 ) -> Dict[str, Any]:
     """Execute the judging pipeline for one or multiple submissions."""
 
@@ -202,14 +200,12 @@ def run_pipeline(
     judging_criteria = _resolve_criteria(config, criteria, criteria_path)
 
     video_analyzer = VideoAnalyzer(
-        intermediate_dir=config.transcript_cache_dir,
         transcription_model=config.video_transcription_model,
         sentiment_model=config.video_sentiment_model,
         device_spec=device_spec,
     )
     text_analyzer = TextAnalyzer(
         similarity_corpus_dir=config.similarity_corpus_dir,
-        intermediate_dir=config.text_cache_dir,
         embedding_model=config.text_embedding_model,
         top_k=config.text_similarity_top_k,
         ai_detector_model=config.text_ai_detector_model,
@@ -223,7 +219,6 @@ def run_pipeline(
         gemini_model=config.gemini_model,
     )
     scorer = Scorer(judging_criteria)
-    cache = AnalysisCache(config.analysis_cache_dir)
 
     results: list[Dict[str, Any]] = []
     pipeline_start = perf_counter()
@@ -234,57 +229,7 @@ def run_pipeline(
         submission_dir, submission_source, extracted_root = _prepare_submission_directory(
             config, name, submission_path
         )
-        fingerprint = directory_fingerprint(submission_dir)
         stage_timings: Dict[str, Dict[str, Any]] = {}
-
-        if clear_cache:
-            cache.invalidate(name)
-            LOGGER.info("Cleared cached results for submission '%s'.", name)
-
-        def _run_stage(
-            stage_name: str,
-            compute,
-            serializer,
-            loader,
-        ):
-            if not skip_cache:
-                cached_payload = cache.load(name, stage_name, fingerprint)
-                if cached_payload is not None:
-                    start_cached = perf_counter()
-                    result = loader(cached_payload)
-                    cached_duration = perf_counter() - start_cached
-                    stage_timings[stage_name] = {
-                        "seconds": round(cached_duration, 4),
-                        "cached": True,
-                        "cache_skipped": False,
-                    }
-                    LOGGER.info(
-                        "Stage '%s' for %s served from cache in %.3fs",
-                        stage_name,
-                        name,
-                        cached_duration,
-                    )
-                    return result
-
-            start = perf_counter()
-            result = compute()
-            duration = perf_counter() - start
-            cache.store(name, stage_name, fingerprint, serializer(result))
-            stage_timings[stage_name] = {
-                "seconds": round(duration, 4),
-                "cached": False,
-                "cache_skipped": bool(skip_cache),
-            }
-            if skip_cache:
-                LOGGER.info(
-                    "Stage '%s' for %s executed in %.3fs (cache bypassed)",
-                    stage_name,
-                    name,
-                    duration,
-                )
-            else:
-                LOGGER.info("Stage '%s' for %s executed in %.3fs", stage_name, name, duration)
-            return result
 
         def _time_stage(stage_name: str, func):
             start = perf_counter()
@@ -292,29 +237,21 @@ def run_pipeline(
             duration = perf_counter() - start
             stage_timings[stage_name] = {
                 "seconds": round(duration, 4),
-                "cached": False,
-                "cache_skipped": bool(skip_cache),
             }
             LOGGER.info("Stage '%s' for %s executed in %.3fs", stage_name, name, duration)
             return value
 
-        video_result = _run_stage(
+        video_result = _time_stage(
             "video",
             lambda: video_analyzer.analyze(submission_dir),
-            lambda res: res.to_dict(),
-            lambda data: VideoAnalysisResult.from_dict(data),
         )
-        text_result = _run_stage(
+        text_result = _time_stage(
             "text",
             lambda: text_analyzer.analyze(submission_dir, video_result.transcript),
-            lambda res: res.to_dict(),
-            lambda data: TextAnalysisResult.from_dict(data),
         )
-        code_result = _run_stage(
+        code_result = _time_stage(
             "code",
             lambda: code_analyzer.analyze(submission_dir),
-            lambda res: res.to_dict(),
-            lambda data: CodeAnalysisResult.from_dict(data),
         )
 
         score = _time_stage(
@@ -331,7 +268,6 @@ def run_pipeline(
             "extracted_root": str(extracted_root),
             "extracted_root_display": _friendly_path(extracted_root, base_root),
             "normalized_from_extracted": str(submission_dir) != str(extracted_root),
-            "fingerprint": fingerprint,
             "video_analysis": video_result.to_dict(),
             "text_analysis": text_result.to_dict(),
             "code_analysis": code_result.to_dict(),
@@ -407,18 +343,6 @@ def _parse_args() -> argparse.Namespace:
         help="Maximum characters to feed into the AI-detection pipeline.",
     )
     parser.add_argument(
-        "--no-cache",
-        dest="skip_cache",
-        action="store_true",
-        help="Bypass cached analyzer outputs and recompute all stages.",
-    )
-    parser.add_argument(
-        "--clear-cache",
-        dest="clear_cache",
-        action="store_true",
-        help="Remove cached results for the targeted submissions before running.",
-    )
-    parser.add_argument(
         "--gemini-api-key",
         dest="gemini_api_key",
         help="Google Gemini Pro API key for AI-powered summaries (highest priority).",
@@ -459,8 +383,6 @@ def main() -> None:
         submission_name=args.submission,
         submission_names=args.submissions,
         criteria_path=criteria_path,
-        skip_cache=args.skip_cache,
-        clear_cache=args.clear_cache,
     )
 
 

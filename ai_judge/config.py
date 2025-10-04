@@ -43,17 +43,5 @@ class Config:
         return JudgingCriteria.default()
 
     @property
-    def transcript_cache_dir(self) -> Path:
-        return (self.base_dir / self.intermediate_dir / "transcripts").resolve()
-
-    @property
-    def text_cache_dir(self) -> Path:
-        return (self.base_dir / self.intermediate_dir / "text").resolve()
-
-    @property
-    def analysis_cache_dir(self) -> Path:
-        return (self.base_dir / self.intermediate_dir / "analysis_cache").resolve()
-
-    @property
     def extracted_submissions_dir(self) -> Path:
         return (self.base_dir / self.intermediate_dir / "extracted_submissions").resolve()

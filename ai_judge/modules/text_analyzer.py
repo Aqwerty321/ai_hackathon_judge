@@ -8,7 +8,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
-from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
+from ..utils.file_helpers import read_submission_description, read_text
 from ..utils.torch_helpers import DeviceSpec
 
 try:  # pragma: no cover - optional heavy dependencies
@@ -224,7 +224,6 @@ class TextAnalyzer:
     def __init__(
         self,
         similarity_corpus_dir: Path | None = None,
-        intermediate_dir: Path | None = None,
         embedding_model: str | None = None,
         top_k: int = 5,
         ai_detector_model: str | None = None,
@@ -234,9 +233,6 @@ class TextAnalyzer:
         gemini_model: str = "models/gemini-2.0-flash-lite",
     ) -> None:
         self.similarity_corpus_dir = Path(similarity_corpus_dir) if similarity_corpus_dir else None
-        self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
-        if self._cache_dir:
-            ensure_directory(self._cache_dir)
         self._embedding_model_name = embedding_model
         self._ai_detector_model = ai_detector_model
         self._top_k = top_k
@@ -679,6 +675,11 @@ class TextAnalyzer:
         if not description:
             return 0.0
 
+        # Try Gemini first for most accurate detection
+        gemini_score = self._estimate_ai_with_gemini(description)
+        if gemini_score is not None:
+            return gemini_score
+
         if pipeline and self._ai_detector_model:
             try:  # pragma: no cover - optional dependency
                 if self._ai_detector is None:
@@ -700,7 +701,7 @@ class TextAnalyzer:
                         score = float(entry.get("score", 0.0))
                         if "ai" in label or "fake" in label:
                             ai_score = max(ai_score, score)
-                    if ai_score:
+                    if ai_score > 0.1:  # Only return if confident
                         return ai_score
             except Exception:
                 pass
@@ -715,6 +716,101 @@ class TextAnalyzer:
         repetition_score = max(0.0, 1.0 - unique_ratio)
         ai_likelihood = 0.4 * repetition_score + 0.3 * (0.2 - pronoun_ratio)
         return max(0.0, min(1.0, ai_likelihood + 0.3))
+
+    def _estimate_ai_with_gemini(self, text: str) -> float | None:
+        """Use Gemini to detect AI-generated content with high accuracy."""
+        if not self._gemini_api_key or not genai:
+            return None
+        
+        try:
+            # Limit text length to avoid context overflow
+            max_chars = 4000
+            if len(text) > max_chars:
+                text = text[:max_chars] + "..."
+            
+            # Initialize Gemini if needed
+            if not hasattr(self, '_gemini_ai_detector'):
+                genai.configure(api_key=self._gemini_api_key)
+                self._gemini_ai_detector = genai.GenerativeModel(self._gemini_model)
+            
+            prompt = f"""Analyze the following text and determine the likelihood it was written by AI (like ChatGPT, Claude, Gemini, etc.) versus a human.
+
+Consider these indicators:
+- **AI indicators**: Perfect grammar, overly formal tone, generic phrasing, repetitive structure, lack of personal voice, buzzword-heavy, no typos/colloquialisms
+- **Human indicators**: Personal anecdotes, casual language, minor errors, unique voice, authentic enthusiasm, specific details, conversational flow
+
+Text to analyze:
+```
+{text}
+```
+
+Respond with ONLY a JSON object in this exact format:
+{{
+  "likelihood": 0.X,
+  "confidence": "high|medium|low",
+  "reasoning": "brief 1-2 sentence explanation"
+}}
+
+Where likelihood is a decimal from 0.0 (definitely human) to 1.0 (definitely AI).
+Examples:
+- 0.9-1.0: Almost certainly AI (perfect, generic, corporate-speak)
+- 0.7-0.8: Likely AI (polished but lacks personality)
+- 0.4-0.6: Mixed or uncertain (could be either)
+- 0.2-0.3: Likely human (personal, casual, imperfect)
+- 0.0-0.1: Almost certainly human (very personal, unique voice)"""
+
+            response = self._gemini_ai_detector.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.3,  # Lower temperature for consistent analysis
+                    "top_p": 0.9,
+                    "top_k": 40,
+                    "max_output_tokens": 200,
+                },
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            )
+            
+            if response and hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                    if candidate.content.parts:
+                        result_text = candidate.content.parts[0].text.strip()
+                        
+                        # Try to parse JSON response
+                        try:
+                            # Extract JSON from markdown code blocks if present
+                            if "```json" in result_text:
+                                result_text = result_text.split("```json")[1].split("```")[0].strip()
+                            elif "```" in result_text:
+                                result_text = result_text.split("```")[1].split("```")[0].strip()
+                            
+                            import json
+                            result = json.loads(result_text)
+                            likelihood = float(result.get("likelihood", 0.5))
+                            confidence = result.get("confidence", "medium")
+                            reasoning = result.get("reasoning", "")
+                            
+                            LOGGER.info("✓ Gemini AI detection: likelihood=%.2f (%s confidence) - %s", 
+                                       likelihood, confidence, reasoning[:100])
+                            
+                            return max(0.0, min(1.0, likelihood))
+                        except (json.JSONDecodeError, ValueError) as e:
+                            LOGGER.warning("Failed to parse Gemini AI detection response: %s", e)
+                            # Try to extract likelihood from text if JSON parsing fails
+                            import re
+                            match = re.search(r'"likelihood":\s*([0-9.]+)', result_text)
+                            if match:
+                                return float(match.group(1))
+        
+        except Exception as exc:
+            LOGGER.warning("Gemini AI detection failed: %s", exc)
+        
+        return None
 
     def _generate_combined_summary(self, description: str, transcript: str) -> str | None:
         """Generate an AI-powered summary combining README and video transcript.

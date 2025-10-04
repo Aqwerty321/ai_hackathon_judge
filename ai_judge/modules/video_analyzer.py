@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import hashlib
 import logging
 import tempfile
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Iterable, Mapping, Tuple
 
-from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
+from ..utils.file_helpers import read_submission_description, read_text
 from ..utils.torch_helpers import DeviceSpec
 
 try:  # pragma: no cover - optional heavy dependency
@@ -61,15 +60,11 @@ class VideoAnalyzer:
     def __init__(
         self,
         transcript_fallback: Iterable[str] | None = None,
-        intermediate_dir: Path | None = None,
         transcription_model: str = "base",
         sentiment_model: str = "distilbert-base-uncased-finetuned-sst-2-english",
         device_spec: DeviceSpec | None = None,
     ) -> None:
         self._fallback_lines = list(transcript_fallback or ())
-        self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
-        if self._cache_dir:
-            ensure_directory(self._cache_dir)
         self._transcription_model = transcription_model
         self._sentiment_model = sentiment_model
         self._sentiment_pipeline = None
@@ -107,37 +102,13 @@ class VideoAnalyzer:
         if transcript_path.exists():
             return read_text(transcript_path), "submission_transcript"
 
-        cached = self._read_cached_transcript(submission_dir)
-        if cached:
-            return cached, "cached_transcript"
-
         video_path = submission_dir / "presentation.mp4"
         if video_path.exists():
             transcript = self._transcribe_video(video_path)
             if transcript:
-                self._write_cached_transcript(submission_dir, transcript)
                 return transcript, "whisper_transcription"
 
         return "", "missing_transcript"
-
-    def _cache_path(self, submission_dir: Path) -> Path | None:
-        if not self._cache_dir:
-            return None
-        digest = hashlib.sha1(str(submission_dir.resolve()).encode("utf-8")).hexdigest()
-        return self._cache_dir / f"{digest}.txt"
-
-    def _read_cached_transcript(self, submission_dir: Path) -> str | None:
-        cache_path = self._cache_path(submission_dir)
-        if cache_path and cache_path.exists():
-            return read_text(cache_path)
-        return None
-
-    def _write_cached_transcript(self, submission_dir: Path, transcript: str) -> None:
-        cache_path = self._cache_path(submission_dir)
-        if not cache_path:
-            return
-        ensure_directory(cache_path.parent)
-        cache_path.write_text(transcript, encoding="utf-8")
 
     def _transcribe_video(self, video_path: Path) -> str | None:
         if whisper is None:

@@ -471,6 +471,8 @@
 
       <div class="card">
         <h2>🎥 Video Analysis</h2>
+        
+        {% if video.transcription_source in ['whisper_transcription', 'submission_transcript'] and video.estimated_duration_seconds > 0 %}
         <div class="metrics-container">
           <div class="metrics">
             <div class="metric">
@@ -499,6 +501,38 @@
         <h3>Transcript Excerpt</h3>
         <blockquote>{{ video_excerpt }}</blockquote>
         <p class="text-muted text-sm">Source: {{ video.transcription_source | default('unknown') }}</p>
+        
+        {% else %}
+        <div style="text-align: center; padding: 3rem 2rem; background: var(--bg-elevated); border-radius: var(--radius); border: 2px dashed var(--border);">
+          <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">🎥</div>
+          <h3 style="color: var(--text-light); margin-bottom: 0.5rem;">No Video Found</h3>
+          <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">
+            {% if video.transcription_source == 'readme_fallback' %}
+            This submission doesn't include a presentation video (presentation.mp4) or transcript.
+            {% elif video.transcription_source == 'manual_fallback' %}
+            No presentation video or transcript provided in the submission.
+            {% elif video.transcription_source == 'missing_transcript' %}
+            No presentation.mp4 or presentation_transcript.txt found in the submission.
+            {% else %}
+            Video analysis not available for this submission.
+            {% endif %}
+          </p>
+          <p style="color: var(--text-light); font-size: 0.85rem; font-style: italic;">
+            💡 Tip: Include a <code style="background: var(--surface); padding: 0.2rem 0.4rem; border-radius: 4px;">presentation.mp4</code> file or 
+            <code style="background: var(--surface); padding: 0.2rem 0.4rem; border-radius: 4px;">presentation_transcript.txt</code> 
+            in your submission for full video analysis.
+          </p>
+          {% if video_excerpt and video_excerpt != 'No transcript available.' %}
+          <div style="margin-top: 1.5rem; text-align: left;">
+            <h4 style="color: var(--primary-light); margin-bottom: 0.5rem;">📄 Using README as Fallback:</h4>
+            <blockquote style="background: var(--surface); padding: 1rem; border-left: 3px solid var(--primary); border-radius: 6px; text-align: left;">
+              {{ video_excerpt }}
+            </blockquote>
+            <p class="text-muted text-sm" style="margin-top: 0.5rem;">Source: {{ video.transcription_source | default('unknown') }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
 
       <div class="card">
@@ -567,18 +601,18 @@
           <div class="grid">
             {% for claim in claims %}
             <div class="card">
-              <p><strong>{{ claim.statement }}</strong></p>
-              <p class="text-muted">Reason: {{ claim.reason }}</p>
+              <div class="markdown-content"><strong>{{ claim.statement }}</strong></div>
+              <p class="text-muted">Reason: <span class="markdown-content" style="display: inline;">{{ claim.reason | markdown | safe }}</span></p>
               {% if claim.llm_verdict %}
               <div class="ai-box" style="margin-top: 0.5rem; padding: 0.75rem;">
                 <span class="badge badge-{{ 'success' if claim.llm_verdict == 'plausible' else 'danger' }}">{{ claim.llm_verdict }}</span>
-                <p style="margin: 0.5rem 0 0 0;">{{ claim.llm_rationale }}</p>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;">{{ claim.llm_rationale | markdown | safe }}</div>
               </div>
               {% endif %}
               {% if claim.verification_result %}
               <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
                 <span class="badge badge-{{ 'success' if claim.verification_result.status == 'verified' else ('danger' if claim.verification_result.status == 'contradicted' else 'info') }}">{{ claim.verification_result.status | default('unknown') }}</span>
-                <p style="margin: 0.5rem 0 0 0;">{{ claim.verification_result.note | default('No verification note available.') }}</p>
+                <div class="markdown-content" style="margin: 0.5rem 0 0 0;">{{ claim.verification_result.note | default('No verification note available.') | markdown | safe }}</div>
                 {% if claim.verification_result.evidence %}
                 <ul style="margin-top: 0.5rem;">
                   {% for item in claim.verification_result.evidence %}
@@ -586,7 +620,7 @@
                     {% if item.title %}<strong>{{ item.title }}</strong>{% endif %}
                     {% if item.url %} <a href="{{ item.url }}" target="_blank" rel="noopener">Source</a>{% endif %}
                     {% if item.snippet %}
-                    <blockquote style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;">{{ item.snippet }}</blockquote>
+                    <blockquote class="markdown-content" style="margin: 0.5rem 0; padding: 0.75rem; background: var(--bg-elevated); border-left: 3px solid var(--primary); border-radius: 6px;">{{ item.snippet | markdown | safe }}</blockquote>
                     {% endif %}
                   </li>
                   {% endfor %}

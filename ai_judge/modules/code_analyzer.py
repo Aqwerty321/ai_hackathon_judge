@@ -589,15 +589,25 @@ Total Functions: {total_functions}
 
 """
 
-            # Add lint messages if available
+            # Add lint messages if available (limit to avoid context overflow)
             if lint_messages:
                 context += "Top Linting Issues (Python):\n"
-                for msg in lint_messages:
-                    context += f"- [{msg.get('symbol')}] {msg.get('path')}:{msg.get('line')} - {msg.get('message')}\n"
+                for msg in lint_messages[:5]:  # Limit to 5 messages to prevent context overflow
+                    # Truncate long paths to keep context manageable
+                    path_str = str(msg.get('path', 'unknown'))
+                    if len(path_str) > 60:
+                        path_str = "..." + path_str[-57:]
+                    context += f"- [{msg.get('symbol')}] {path_str}:{msg.get('line')} - {msg.get('message', '')[:100]}\n"
             elif python_files:
                 context += "Linting Issues: None detected\n"
             
             context += "\n"
+            
+            # Safety check: truncate context if too large (Gemini has ~30K token limit, roughly 120K chars)
+            max_context_chars = 8000  # Leave room for prompt and response
+            if len(context) > max_context_chars:
+                LOGGER.warning("Context too large (%d chars), truncating to %d chars", len(context), max_context_chars)
+                context = context[:max_context_chars] + "\n\n[Context truncated due to size...]"
 
             prompt = f"""{context}
 
@@ -608,6 +618,8 @@ Based on this multi-language code analysis, provide:
 4. **Priority Fix** (if issues exist): The most important improvement to make first
 
 Be concise, specific, and constructive. Tailor advice to the {primary_language} ecosystem and best practices."""
+
+            LOGGER.info("Generating Gemini code insights (context: %d chars, prompt: %d chars)", len(context), len(prompt))
 
             response = self._gemini_client.generate_content(
                 prompt,
@@ -627,16 +639,30 @@ Be concise, specific, and constructive. Tailor advice to the {primary_language} 
 
             if response and hasattr(response, 'candidates') and response.candidates:
                 candidate = response.candidates[0]
+                # Check if content was blocked
+                if hasattr(candidate, 'finish_reason'):
+                    finish_reason = str(candidate.finish_reason)
+                    if 'SAFETY' in finish_reason or 'BLOCKED' in finish_reason:
+                        LOGGER.warning("Gemini response blocked due to safety filters: %s", finish_reason)
+                        return None
+                    if 'RECITATION' in finish_reason:
+                        LOGGER.warning("Gemini response blocked due to recitation: %s", finish_reason)
+                        return None
+                
                 if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
                     if candidate.content.parts:
                         insights_text = candidate.content.parts[0].text.strip()
-                        LOGGER.info("Generated Gemini code insights (%d chars)", len(insights_text))
+                        LOGGER.info("✓ Generated Gemini code insights (%d chars)", len(insights_text))
                         return {
                             "analysis": insights_text,
                             "generated_by": self._gemini_model
                         }
+                else:
+                    LOGGER.warning("Gemini response has no content parts")
+            else:
+                LOGGER.warning("Gemini response has no candidates")
 
         except Exception as exc:
-            LOGGER.warning("Gemini code insights generation failed: %s", exc)
+            LOGGER.error("Gemini code insights generation failed: %s", exc, exc_info=True)
 
         return None
