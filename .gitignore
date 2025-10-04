@@ -11,6 +11,9 @@ __pycache__/
 reports/*.txt
 models/
 
+# External binaries
+external/
+
 # OS-specific
 .DS_Store
 Thumbs.db
