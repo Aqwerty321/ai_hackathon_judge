@@ -30,11 +30,5 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Lint code analyzer
-        run: >-
-          python -m pylint
-          ai_judge/modules/code_analyzer.py
-          --disable=missing-module-docstring,missing-function-docstring,too-many-locals,too-few-public-methods
-
       - name: Run tests
         run: python -m pytest

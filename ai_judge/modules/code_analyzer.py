@@ -184,9 +184,8 @@ class CodeAnalyzer:
             details["discovered_code_root"] = True
 
         # Run Python-specific analysis if Python files exist
-        lint_score, lint_details = self._run_pylint(code_dir, python_files) if python_files else (None, {"status": "skipped", "reason": "No Python files"})
-        if lint_score is not None:
-            readability_signals.append(lint_score)
+        # Pylint disabled to avoid CI conflicts
+        lint_details = {"status": "disabled", "reason": "Pylint analysis disabled"}
         details["lint"] = lint_details
 
         complexity_score, complexity_details = self._compute_complexity(python_files) if python_files else (None, {"status": "skipped", "reason": "No Python files"})

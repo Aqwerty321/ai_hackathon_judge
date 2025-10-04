@@ -14,7 +14,7 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 - �️ **Archive aware**: automatically unpacks `.zip` submissions before analysis.
 - �📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
-- 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
+- 🧪 **Stage 4 code insights** combining radon complexity, docstring coverage, and live pytest execution.
 - 📊 **Stage 5 explainability** with templated submission reports and a multi-metric leaderboard.
 - ⏱️ **Stage 6 observability** with pipeline caching, per-stage timing logs, and runtime enforcement.
 - 📝 **Explainable reports** saved to `reports/` summarising the decision process.
@@ -46,7 +46,7 @@ tests/                # Pytest-based unit tests
    ```powershell
    pip install -r requirements.txt
    ```
-   This pulls in pytest for the suite, pylint + radon for the Stage 4 code analyzer, pandas + Jinja2 for Stage 5 reporting, and google-generativeai for Gemini Pro integration.
+   This pulls in pytest for the suite, radon for the Stage 4 code analyzer, pandas + Jinja2 for Stage 5 reporting, and google-generativeai for Gemini Pro integration.
 
 2. **(Optional) Set up Gemini Pro API for better summaries:**
    ```powershell
@@ -65,11 +65,7 @@ tests/                # Pytest-based unit tests
    ```powershell
    python -m pytest
    ```
-4. (Optional) Run the code analyzer lint gate to mirror CI:
-   ```powershell
-   python -m pylint ai_judge/modules/code_analyzer.py --disable=missing-module-docstring,missing-function-docstring,too-many-locals,too-few-public-methods
-   ```
-   5. (Optional) Validate leaderboard predictions against human labels:
+5. (Optional) Validate leaderboard predictions against human labels:
        ```powershell
        python scripts/evaluate_predictions.py reports/leaderboard.csv --label-column human_label
        ```
@@ -90,8 +86,8 @@ tests/                # Pytest-based unit tests
 ### Continuous Integration
 
 - GitHub Actions workflow in `.github/workflows/ci.yml` runs on pushes and pull requests against `main`.
-- Steps: install dependencies, run the targeted pylint check above, and execute the pytest suite.
-- Keep local quality gates green (`python -m pytest` and the lint command) to ensure CI stays fast and reliable.
+- Steps: install dependencies and execute the pytest suite.
+- Keep local quality gates green (`python -m pytest`) to ensure CI stays fast and reliable.
 
 ### Customising Judging Criteria
 
