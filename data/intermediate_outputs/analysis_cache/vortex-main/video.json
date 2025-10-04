@@ -1,0 +1,11 @@
+{
+  "fingerprint": "e31d88db2da540c8b8292b57e0c87ef6512b6b5f",
+  "payload": {
+    "transcript": "# vortex\n# **Food Donation Connect**\n\n## **Overview**\n**Food Donation Connect** is a platform designed to bridge the gap between donors and receivers, simplifying the food donation process to help eliminate food waste and hunger. The platform allows donors to easily find receivers in need and provides volunteers with real-time notifications of donation opportunities in their area.\n\n## **Features**\n\n### **Donor Dashboard**\n- **Donation Form**: Donors can fill out a form with the following details:\n  - Location\n  - Number of people the food can feed\n  - Food description and expiry date\n  - Whether the donor can personally deliver the food\n- **Receiver Matching**: Donors can view a list of receivers that can be filtered by:\n  - Proximity to the donor's location\n  - The number of people the receiver needs to feed\n- **Receiver Information**: Donors can access receiver details such as:\n  - Receiver's location and contact details\n  - Biodata and number of people to be fed\n- **Donation History**: After donation, receivers can update the donor's profile with:\n  - The number of people fed\n  - Photos (if available)\n  - A description of the impact of the donation\n- **Donor Profile**: Keeps track of:\n  - Total donations made\n  - Total people fed through donations\n  - Donation impact based on receiver updates\n\n### **Receiver Dashboard**\n- **Donation List**: Receivers can view donor submissions, including:\n  - Number of people the food can feed\n  - Food description, expiry date, and donor location\n  - Whether the donor can deliver the food\n- **Receiver Profile**: Contains:\n  - Receiver's location and contact details\n  - Biodata and the number of people they need to feed\n\n### **Volunteer Notifications**\n- **Opt-in Feature**: All users can opt in to receive notifications when a donor form is submitted within a certain radius.\n- **Notification Details**: Volunteers will receive all relevant donor information, such as:\n  - Food description\n  - Number of people the food can feed\n  - Donor location and delivery",
+    "clarity_score": 0.3,
+    "estimated_duration_seconds": 127.6,
+    "sentiment_label": "positive",
+    "sentiment_score": 0.709,
+    "transcription_source": "readme_fallback"
+  }
+}

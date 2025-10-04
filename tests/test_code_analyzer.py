@@ -54,6 +54,7 @@ def test_code_analyzer_runs_lint_complexity_and_tests(tmp_path: Path) -> None:
     assert "lint" in result.details
     assert "complexity" in result.details
     assert "documentation" in result.details
+    assert "code_root" in result.details
 
 
 def test_code_analyzer_returns_zero_without_code_dir(tmp_path: Path) -> None:
@@ -106,3 +107,22 @@ def test_code_analyzer_records_skipped_tools_when_dependencies_missing(tmp_path:
     assert result.details["complexity"]["status"] == "skipped"
     assert result.details["pytest"]["status"] == "skipped"
     assert result.details["documentation"]["docstrings"] == 0
+
+
+def test_code_analyzer_discovers_nested_code_directory(tmp_path: Path) -> None:
+    project_root = tmp_path / "Student-Management-System-main"
+    nested_code = project_root / "src" / "student_management_system"
+    nested_code.mkdir(parents=True)
+    (project_root / "README.md").write_text("Nested project", encoding="utf-8")
+    (nested_code / "__init__.py").write_text("", encoding="utf-8")
+    (nested_code / "app.py").write_text("def main():\n    return 42\n", encoding="utf-8")
+
+    analyzer = CodeAnalyzer()
+    result = analyzer.analyze(tmp_path)
+
+    assert result.readability_score >= 0.0
+    assert result.details["evaluated_files"]
+    assert result.details.get("discovered_code_root") is True
+    code_root = Path(result.details["code_root"])
+    assert code_root.parts[-1] == "src"
+    assert any("student_management_system" in str(path) for path in result.details["evaluated_files"])

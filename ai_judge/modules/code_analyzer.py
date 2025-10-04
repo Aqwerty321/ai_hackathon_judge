@@ -70,12 +70,33 @@ class CodeAnalysisResult:
 class CodeAnalyzer:
     """Heuristic estimation of code quality signals."""
 
+    _SKIP_DIR_NAMES = {
+        "__pycache__",
+        ".git",
+        "node_modules",
+        "venv",
+        ".venv",
+        "env",
+        ".env",
+        "build",
+        "dist",
+        ".pytest_cache",
+        ".mypy_cache",
+    }
+
     def analyze(self, submission_dir: Path) -> CodeAnalysisResult:
         code_dir = submission_dir / "code"
-        if not code_dir.exists():
-            return CodeAnalysisResult(0.0, 0.0, 0.0)
+        python_files = []
+        if code_dir.exists():
+            python_files = list(self._iter_python_files(code_dir))
 
-        python_files = list(code_dir.rglob("*.py"))
+        discovered_dir: Optional[Path] = None
+        if not python_files:
+            discovered_dir = self._discover_code_directory(submission_dir)
+            if discovered_dir is not None:
+                code_dir = discovered_dir
+                python_files = list(self._iter_python_files(code_dir))
+
         if not python_files:
             return CodeAnalysisResult(0.0, 0.0, 0.0)
 
@@ -83,6 +104,13 @@ class CodeAnalyzer:
         details: Dict[str, Any] = {
             "evaluated_files": [str(path.relative_to(code_dir)) for path in python_files],
         }
+        try:
+            rel_code_root = code_dir.relative_to(submission_dir)
+            details["code_root"] = str(rel_code_root) or "."
+        except ValueError:
+            details["code_root"] = str(code_dir)
+        if discovered_dir is not None:
+            details["discovered_code_root"] = True
 
         lint_score, lint_details = self._run_pylint(code_dir, python_files)
         if lint_score is not None:
@@ -123,6 +151,60 @@ class CodeAnalyzer:
             test_coverage_score_estimate=round(coverage_estimate, 3),
             details=details,
         )
+
+    def _iter_python_files(self, root: Path) -> Iterable[Path]:
+        for path in root.rglob("*.py"):
+            if any(part in self._SKIP_DIR_NAMES for part in path.parts):
+                continue
+            yield path
+
+    def _discover_code_directory(self, submission_dir: Path) -> Optional[Path]:
+        python_files = [path for path in self._iter_python_files(submission_dir)]
+        if not python_files:
+            return None
+
+        top_level = [path for path in python_files if path.parent == submission_dir]
+        if top_level:
+            return submission_dir
+
+        scores: Dict[Path, int] = {}
+        for file_path in python_files:
+            parent = file_path.parent
+            while parent != submission_dir and parent.is_relative_to(submission_dir):
+                try:
+                    relative_parts = parent.relative_to(submission_dir).parts
+                except ValueError:
+                    break
+                if any(part in self._SKIP_DIR_NAMES for part in relative_parts):
+                    break
+                scores[parent] = scores.get(parent, 0) + 1
+                parent = parent.parent
+
+        if not scores:
+            return submission_dir
+
+        def _score(entry: Tuple[Path, int]) -> Tuple[int, int, int]:
+            directory, count = entry
+            try:
+                relative = directory.relative_to(submission_dir)
+                depth = len(relative.parts)
+                name = directory.name.lower()
+            except ValueError:
+                depth = 0
+                name = directory.name.lower()
+
+            bonus = 0
+            if name in {"code", "src", "source"}:
+                bonus += 5
+            elif name in {"app", "backend", "server", "service"}:
+                bonus += 3
+            if name.startswith("test"):
+                bonus -= 5
+
+            return (count * 10 + bonus, -depth, -len(name))
+
+        best_dir = max(scores.items(), key=_score)[0]
+        return best_dir
 
     # ------------------------------------------------------------------
     # Linting / complexity / documentation utilities

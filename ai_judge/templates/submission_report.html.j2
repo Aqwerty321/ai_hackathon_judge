@@ -152,7 +152,13 @@
     <header>
       <h1>AI Hackathon Report: {{ submission_name }}</h1>
       <div class="score">Total score: {{ score_total }}</div>
-      <div class="muted">Submission directory: {{ submission_dir }}</div>
+  <div class="muted">Analyzed directory: {{ submission_dir }}</div>
+  {% if submission_source %}
+  <div class="muted">Original submission: {{ submission_source }}</div>
+  {% endif %}
+      {% if extracted_root and normalized_from_extracted %}
+      <div class="muted">Extraction root: {{ extracted_root }}</div>
+      {% endif %}
     </header>
 
     <section>

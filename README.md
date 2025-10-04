@@ -7,7 +7,8 @@ An extensible, explainable judging pipeline for AI hackathon submissions. It pro
 - 🔍 **Modular analyzers** for video, text, and code signals.
 - 🎥 **Video pipeline** with optional Whisper transcription + sentiment analysis and caching.
 - 🧾 **Code-only friendly**: gracefully falls back to README/description text when no video is provided.
-- 📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
+- �️ **Archive aware**: automatically unpacks `.zip` submissions before analysis.
+- �📝 **Text originality & claim checks** featuring similarity search, heuristics, and AI-generated detection fallbacks.
 - 🧮 **Configurable weighting** of each modality to align with event priorities.
 - 🧪 **Stage 4 code insights** combining pylint linting, radon complexity, docstring coverage, and live pytest execution.
 - 📊 **Stage 5 explainability** with templated submission reports and a multi-metric leaderboard.
@@ -46,6 +47,7 @@ tests/                # Pytest-based unit tests
    ```powershell
    python -m ai_judge.main
    ```
+   The runner will automatically expand `data/submissions/<name>.zip` if only an archive is present.
 3. Execute the test suite:
    ```powershell
    python -m pytest

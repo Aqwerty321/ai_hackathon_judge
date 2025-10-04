@@ -26,6 +26,10 @@ class Config:
     text_llm_model_path: Path | None = Path("models") / "mistral-7b-instruct-v0.2.Q4_K_M.gguf"
     text_llm_model_type: str = "auto"
     text_llm_max_tokens: int = 256
+    text_llm_context_length: int = 8192
+    text_llm_gpu_layers: int | None = None
+    text_ai_detector_context_length: int = 8192
+    device_preference: str = "auto"
 
     def submission_dir(self, name: str | None = None) -> Path:
         target = Path(self.data_dir) / "submissions" / (name or self.default_submission_name)
@@ -61,3 +65,7 @@ class Config:
     @property
     def analysis_cache_dir(self) -> Path:
         return (self.base_dir / self.intermediate_dir / "analysis_cache").resolve()
+
+    @property
+    def extracted_submissions_dir(self) -> Path:
+        return (self.base_dir / self.intermediate_dir / "extracted_submissions").resolve()

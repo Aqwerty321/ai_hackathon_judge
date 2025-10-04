@@ -1,0 +1,11 @@
+{
+  "fingerprint": "08c0b331856e4bff8b6ad27b21f443c71ece79ac",
+  "payload": {
+    "transcript": "# Student-Management-System\nIn this Project you will see the work with JAVA for display the student marks distribution system and the process of functionality.\nA simple Student Management System built in Java to manage student records including adding, updating, deleting, and displaying student details. This project demonstrates the core concepts of object-oriented programming (OOP) and file handling in Java.\n\n📌 Features\nAdd new student records\n\nUpdate existing student information\n\nDelete student records\n\nView all student data\n\nSearch students by ID or name\n\nSimple command-line interface (CLI)\n\nFile-based data persistence (Optional depending on your implementation)\n\n🛠️ Technologies Used\nJava (JDK 8+)\n\nIDE: IntelliJ IDEA / Eclipse / VS Code\n\nFile handling (for persistence, optional)\n\nOOP concepts (Encapsulation, Inheritance, etc.)\n\n📁 Project Structure\nbash\nCopy\nEdit\nStudentManagementSystem/\n│\n├── src/\n│   ├── Student.java           # Model class\n│   ├── StudentManager.java    # Core logic (CRUD operations)\n│   └── Main.java              # Entry point\n│\n└── README.md\n🚀 How to Run\nClone the Repository\n\nbash\nCopy\nEdit\ncd student-management-system-java\nCompile the Code\n\nbash\nCopy\nEdit\njavac src/*.java\nRun the Program\n\nbash\nCopy\nEdit\njava src.Main\n📸 Screenshots\n(Add screenshots of CLI interface or sample output here if available)\n\n✅ Future Improvements\nGUI interface using Swing or JavaFX\n\nMySQL or SQLite database integration\n\nExport data to textfile\n\nLogin authentication for admin\n\n🤝 Contributing\nContributions are welcome! Feel free to fork the repo and submit a pull request.\nPlease open an issue first to discuss what you would like to change.\n\n📄 License\nThis project is licensed under the MIT License.\n\n👨‍💻 Author\nAkash Pandey",
+    "clarity_score": 0.817,
+    "estimated_duration_seconds": 102.8,
+    "sentiment_label": "positive",
+    "sentiment_score": 0.546,
+    "transcription_source": "readme_fallback"
+  }
+}

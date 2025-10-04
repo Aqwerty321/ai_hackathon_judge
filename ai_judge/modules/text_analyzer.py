@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
+from ..utils.torch_helpers import DeviceSpec
 
 try:  # pragma: no cover - optional heavy dependencies
     from sentence_transformers import SentenceTransformer  # type: ignore
@@ -227,6 +228,10 @@ class TextAnalyzer:
         llm_model_path: Path | None = None,
         llm_model_type: str = "auto",
         llm_max_tokens: int = 256,
+        llm_context_length: int = 4096,
+        llm_gpu_layers: int | None = None,
+        ai_detector_context_length: int = 4096,
+        device_spec: DeviceSpec | None = None,
     ) -> None:
         self.similarity_corpus_dir = Path(similarity_corpus_dir) if similarity_corpus_dir else None
         self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
@@ -243,6 +248,10 @@ class TextAnalyzer:
         self._ai_detector = None
         self._corpus_cache: list[tuple[str, str]] | None = None
         self._llm = None
+        self._device_spec = device_spec
+        self._llm_context_length = max(512, llm_context_length)
+        self._llm_gpu_layers = llm_gpu_layers
+        self._ai_detector_context_length = max(512, ai_detector_context_length)
 
     def analyze(self, submission_dir: Path) -> TextAnalysisResult:
         description, _ = read_submission_description(submission_dir)
@@ -326,7 +335,10 @@ class TextAnalyzer:
     ) -> list[SimilarityMatch]:  # pragma: no cover - depends on optional libs
         try:
             if self._embedder is None:
-                self._embedder = SentenceTransformer(self._embedding_model_name)
+                device_kwargs: dict[str, object] = {}
+                if self._device_spec is not None:
+                    device_kwargs["device"] = self._device_spec.sentence_transformer_device
+                self._embedder = SentenceTransformer(self._embedding_model_name, **device_kwargs)
             query_vec = self._embedder.encode(description, normalize_embeddings=True)
             matches: list[SimilarityMatch] = []
             for key, text in corpus:
@@ -482,9 +494,18 @@ class TextAnalyzer:
 
         if self._llm is None:
             try:  # pragma: no cover - heavy dependency
+                llm_kwargs: dict[str, object] = {
+                    "model_type": self._llm_model_type,
+                    "context_length": self._llm_context_length,
+                }
+                gpu_layers = self._resolve_gpu_layers()
+                if gpu_layers is not None:
+                    llm_kwargs["gpu_layers"] = gpu_layers
+                if self._device_spec is not None and self._device_spec.kind != "cpu":
+                    llm_kwargs["device"] = self._device_spec.kind
                 self._llm = AutoModelForCausalLM.from_pretrained(
                     str(self._llm_model_path),
-                    model_type=self._llm_model_type,
+                    **llm_kwargs,
                 )
             except Exception as exc:  # pragma: no cover
                 LOGGER.warning("Failed to load local LLM from '%s': %s", self._llm_model_path, exc)
@@ -511,7 +532,7 @@ class TextAnalyzer:
         return enriched
 
     def _build_claim_prompt(self, description: str, claim: str) -> str:
-        description = description.strip() or "No description provided."
+        description = self._truncate_for_llm(description.strip() or "No description provided.")
         claim = claim.strip()
         return (
             "You are an impartial hackathon judge verifying factual claims.\n"
@@ -545,13 +566,16 @@ class TextAnalyzer:
         if pipeline and self._ai_detector_model:
             try:  # pragma: no cover - optional dependency
                 if self._ai_detector is None:
-                    self._ai_detector = pipeline(
-                        "text-classification",
-                        model=self._ai_detector_model,
-                        top_k=None,
-                        truncation=True,
-                    )
-                result = self._ai_detector(description[:4096])
+                    pipeline_kwargs: dict[str, object] = {
+                        "model": self._ai_detector_model,
+                        "top_k": None,
+                        "truncation": True,
+                    }
+                    if self._device_spec is not None:
+                        pipeline_kwargs["device"] = self._device_spec.pipeline_device
+                    self._ai_detector = pipeline("text-classification", **pipeline_kwargs)
+                truncated = description[: self._ai_detector_context_length]
+                result = self._ai_detector(truncated)
                 if isinstance(result, list) and result:
                     entries = result[0] if isinstance(result[0], list) else result
                     ai_score = 0.0
@@ -575,3 +599,18 @@ class TextAnalyzer:
         repetition_score = max(0.0, 1.0 - unique_ratio)
         ai_likelihood = 0.4 * repetition_score + 0.3 * (0.2 - pronoun_ratio)
         return max(0.0, min(1.0, ai_likelihood + 0.3))
+
+    def _resolve_gpu_layers(self) -> int | None:
+        if self._llm_gpu_layers is not None:
+            return self._llm_gpu_layers
+        if self._device_spec is None:
+            return None
+        if self._device_spec.kind == "cuda":
+            return 32
+        return None
+
+    def _truncate_for_llm(self, text: str) -> str:
+        max_chars = max(512, self._llm_context_length * 4)
+        if len(text) <= max_chars:
+            return text
+        return text[: max_chars - 3] + "..."

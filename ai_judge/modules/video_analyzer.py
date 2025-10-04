@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Iterable, Mapping, Tuple
 
 from ..utils.file_helpers import ensure_directory, read_submission_description, read_text
+from ..utils.torch_helpers import DeviceSpec
 
 try:  # pragma: no cover - optional heavy dependency
     import whisper
@@ -63,6 +64,7 @@ class VideoAnalyzer:
         intermediate_dir: Path | None = None,
         transcription_model: str = "base",
         sentiment_model: str = "distilbert-base-uncased-finetuned-sst-2-english",
+        device_spec: DeviceSpec | None = None,
     ) -> None:
         self._fallback_lines = list(transcript_fallback or ())
         self._cache_dir = Path(intermediate_dir) if intermediate_dir else None
@@ -71,6 +73,7 @@ class VideoAnalyzer:
         self._transcription_model = transcription_model
         self._sentiment_model = sentiment_model
         self._sentiment_pipeline = None
+        self._device_spec = device_spec
 
     def analyze(self, submission_dir: Path) -> VideoAnalysisResult:
         transcript_path = submission_dir / "presentation_transcript.txt"
@@ -196,7 +199,10 @@ class VideoAnalyzer:
 
         try:  # pragma: no cover - dependent on transformers
             if self._sentiment_pipeline is None:
-                self._sentiment_pipeline = pipeline("sentiment-analysis", model=self._sentiment_model)
+                kwargs = {"model": self._sentiment_model}
+                if self._device_spec is not None:
+                    kwargs["device"] = self._device_spec.pipeline_device
+                self._sentiment_pipeline = pipeline("sentiment-analysis", **kwargs)
             truncated = transcript[:4096]
             result = self._sentiment_pipeline(truncated)[0]
             label = str(result.get("label", "neutral")).lower()

@@ -36,3 +36,23 @@ class AnalysisCache:
                 "payload": payload,
             },
         )
+
+    def invalidate(self, submission: str, stage: str | None = None) -> None:
+        """Remove cached payload for a submission. If stage is None, drop all stages."""
+
+        if stage is not None:
+            self._stage_path(submission, stage).unlink(missing_ok=True)
+            return
+
+        submission_dir = self.base_dir / submission
+        if not submission_dir.exists():
+            return
+
+        for payload_file in submission_dir.glob("*.json"):
+            payload_file.unlink(missing_ok=True)
+
+        try:
+            submission_dir.rmdir()
+        except OSError:
+            # Directory may still contain other files; ignore.
+            pass

@@ -68,9 +68,29 @@ class ReportGenerator:
 
         chart_paths = self._build_charts(submission_name, score_section, video, text, code)
 
+        submission_dir_display = (
+            payload.get("submission_dir_display")
+            or payload.get("submission_dir")
+            or "Unknown"
+        )
+        submission_source_display = (
+            payload.get("submission_source_display")
+            or payload.get("submission_source")
+            or None
+        )
+        extracted_root_display = (
+            payload.get("extracted_root_display")
+            or payload.get("extracted_root")
+            or None
+        )
+        normalized_from_extracted = bool(payload.get("normalized_from_extracted"))
+
         context = {
             "submission_name": submission_name,
-            "submission_dir": payload.get("submission_dir", "Unknown"),
+            "submission_dir": submission_dir_display,
+            "submission_source": submission_source_display,
+            "extracted_root": extracted_root_display,
+            "normalized_from_extracted": normalized_from_extracted,
             "score_total": f"{score_section.get('total', 0):.3f}",
             "criteria": criteria,
             "video": video,

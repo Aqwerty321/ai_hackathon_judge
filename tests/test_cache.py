@@ -27,6 +27,21 @@ def test_analysis_cache_roundtrip(tmp_path: Path) -> None:
     assert cached_dict["transcript"] == "Hello world"
 
 
+def test_analysis_cache_invalidate(tmp_path: Path) -> None:
+    cache = AnalysisCache(tmp_path)
+    cache.store("alpha", "video", "sig-1", {"value": 1})
+    cache.store("alpha", "text", "sig-1", {"value": 2})
+
+    assert cache.load("alpha", "video", "sig-1") == {"value": 1}
+
+    cache.invalidate("alpha", "video")
+    assert cache.load("alpha", "video", "sig-1") is None
+    assert cache.load("alpha", "text", "sig-1") == {"value": 2}
+
+    cache.invalidate("alpha")
+    assert cache.load("alpha", "text", "sig-1") is None
+
+
 def test_directory_fingerprint_changes_on_update(tmp_path: Path) -> None:
     file_path = tmp_path / "artifact.txt"
     file_path.write_text("before", encoding="utf-8")
